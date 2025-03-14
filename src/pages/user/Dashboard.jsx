@@ -15,7 +15,7 @@ const UserDashboard = () => {
         } p-4 transition-all duration-300 shadow-lg`}
       >
         <div className="flex justify-between items-center mb-8">
-          <h2 className={`font-bold text-xl ${sidebarOpen ? "" : "hidden"}`}>Learning System</h2>
+          <h2 className={`font-bold text-xl ${sidebarOpen ? "" : "hidden"}`}>Hệ Thống Học Tập</h2>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-full hover:bg-gray-200 hover:bg-opacity-20"
@@ -41,7 +41,7 @@ const UserDashboard = () => {
             }
           >
             <span className="material-icons mr-2">dashboard</span>
-            {sidebarOpen && <span>Dashboard</span>}
+            {sidebarOpen && <span>Bảng Điều Khiển</span>}
           </NavLink>
           
           <NavLink 
@@ -59,7 +59,7 @@ const UserDashboard = () => {
             }
           >
             <span className="material-icons mr-2">video_library</span>
-            {sidebarOpen && <span>Lectures & Materials</span>}
+            {sidebarOpen && <span>Bài Giảng & Tài Liệu</span>}
           </NavLink>
           
           <NavLink 
@@ -77,7 +77,7 @@ const UserDashboard = () => {
             }
           >
             <span className="material-icons mr-2">quiz</span>
-            {sidebarOpen && <span>Quizzes & Assessments</span>}
+            {sidebarOpen && <span>Bài Kiểm Tra & Đánh Giá</span>}
           </NavLink>
           
           <NavLink 
@@ -95,7 +95,7 @@ const UserDashboard = () => {
             }
           >
             <span className="material-icons mr-2">workspace_premium</span>
-            {sidebarOpen && <span>Certifications</span>}
+            {sidebarOpen && <span>Chứng Chỉ</span>}
           </NavLink>
           
           <NavLink 
@@ -113,7 +113,7 @@ const UserDashboard = () => {
             }
           >
             <span className="material-icons mr-2">forum</span>
-            {sidebarOpen && <span>Discussion Forum</span>}
+            {sidebarOpen && <span>Diễn Đàn Thảo Luận</span>}
           </NavLink>
         </nav>
       </div>
@@ -122,7 +122,7 @@ const UserDashboard = () => {
       <div className="flex-1 overflow-auto">
         {/* Header */}
         <header className={`p-4 ${theme === "dark" ? "bg-gray-800" : "bg-white"} shadow-md flex justify-between items-center`}>
-          <h1 className="text-2xl font-bold">Learning Dashboard</h1>
+          <h1 className="text-2xl font-bold">Bảng Điều Khiển Học Tập</h1>
           <div className="flex items-center space-x-4">
             <button className="p-2 rounded-full hover:bg-gray-200 hover:bg-opacity-20">
               <span className="material-icons">notifications</span>

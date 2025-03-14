@@ -13,11 +13,11 @@ function AdminDashboard() {
   const [activePage, setActivePage] = useState('dashboard');
 
   const sidebarItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: <Cog6ToothIcon className="w-6 h-6" />, path: '/admin' },
-    { id: 'users', name: 'User Management', icon: <UsersIcon className="w-6 h-6" />, path: '/admin/users' },
-    { id: 'courses', name: 'Course Management', icon: <BookOpenIcon className="w-6 h-6" />, path: '/admin/courses' },
-    { id: 'analytics', name: 'Reports & Analytics', icon: <ChartBarIcon className="w-6 h-6" />, path: '/admin/analytics' },
-    { id: 'notifications', name: 'Notifications', icon: <BellIcon className="w-6 h-6" />, path: '/admin/notifications' },
+    { id: 'dashboard', name: 'Bảng Điều Khiển', icon: <Cog6ToothIcon className="w-6 h-6" />, path: '/admin' },
+    { id: 'users', name: 'Quản Lý Người Dùng', icon: <UsersIcon className="w-6 h-6" />, path: '/admin/users' },
+    { id: 'courses', name: 'Quản Lý Khóa Học', icon: <BookOpenIcon className="w-6 h-6" />, path: '/admin/courses' },
+    { id: 'analytics', name: 'Báo Cáo & Phân Tích', icon: <ChartBarIcon className="w-6 h-6" />, path: '/admin/analytics' },
+    { id: 'notifications', name: 'Thông Báo', icon: <BellIcon className="w-6 h-6" />, path: '/admin/notifications' },
   ];
 
   return (
@@ -25,7 +25,7 @@ function AdminDashboard() {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-md">
         <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600">E-Learning Admin</h1>
+          <h1 className="text-2xl font-bold text-blue-600">Quản Trị Học Trực Tuyến</h1>
         </div>
         <nav className="mt-6">
           <ul>
@@ -50,7 +50,7 @@ function AdminDashboard() {
             className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
           >
             <ArrowLeftOnRectangleIcon className="w-6 h-6 mr-3" />
-            <span>Logout</span>
+            <span>Đăng Xuất</span>
           </button>
         </div>
       </div>
@@ -60,7 +60,7 @@ function AdminDashboard() {
         <header className="bg-white shadow-sm">
           <div className="flex justify-between items-center px-8 py-4">
             <h2 className="text-xl font-semibold text-gray-800">
-              {sidebarItems.find(item => item.id === activePage)?.name || 'Dashboard'}
+              {sidebarItems.find(item => item.id === activePage)?.name || 'Bảng Điều Khiển'}
             </h2>
             <div className="flex items-center">
               <button className="p-2 rounded-full hover:bg-gray-100">
@@ -68,9 +68,9 @@ function AdminDashboard() {
               </button>
               <div className="ml-4 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                  A
+                  Q
                 </div>
-                <span className="ml-2 text-gray-700">Admin</span>
+                <span className="ml-2 text-gray-700">Quản Trị</span>
               </div>
             </div>
           </div>

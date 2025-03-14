@@ -9,47 +9,47 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 // Sample data for charts
 const userActivityData = [
-  { name: 'Jan', activeUsers: 400 },
-  { name: 'Feb', activeUsers: 550 },
-  { name: 'Mar', activeUsers: 600 },
-  { name: 'Apr', activeUsers: 750 },
-  { name: 'May', activeUsers: 800 },
-  { name: 'Jun', activeUsers: 950 },
+  { name: 'Th1', activeUsers: 400 },
+  { name: 'Th2', activeUsers: 550 },
+  { name: 'Th3', activeUsers: 600 },
+  { name: 'Th4', activeUsers: 750 },
+  { name: 'Th5', activeUsers: 800 },
+  { name: 'Th6', activeUsers: 950 },
 ];
 
 const courseCompletionData = [
-  { name: 'Course A', completed: 45, total: 80 },
-  { name: 'Course B', completed: 65, total: 90 },
-  { name: 'Course C', completed: 35, total: 70 },
-  { name: 'Course D', completed: 55, total: 60 },
-  { name: 'Course E', completed: 25, total: 50 },
+  { name: 'Khóa học A', completed: 45, total: 80 },
+  { name: 'Khóa học B', completed: 65, total: 90 },
+  { name: 'Khóa học C', completed: 35, total: 70 },
+  { name: 'Khóa học D', completed: 55, total: 60 },
+  { name: 'Khóa học E', completed: 25, total: 50 },
 ];
 
 function DashboardOverview() {
   const statCards = [
     {
-      title: 'Total Users',
+      title: 'Tổng Người Dùng',
       value: '1,247',
       icon: <UsersIcon className="w-8 h-8 text-blue-600" />,
       change: '+12%',
       changeType: 'positive',
     },
     {
-      title: 'Active Courses',
+      title: 'Khóa Học Hoạt Động',
       value: '34',
       icon: <BookOpenIcon className="w-8 h-8 text-green-600" />,
       change: '+5%',
       changeType: 'positive',
     },
     {
-      title: 'Course Completions',
+      title: 'Hoàn Thành Khóa Học',
       value: '156',
       icon: <AcademicCapIcon className="w-8 h-8 text-purple-600" />,
       change: '+18%',
       changeType: 'positive',
     },
     {
-      title: 'Avg. Quiz Score',
+      title: 'Điểm Kiểm Tra TB',
       value: '78%',
       icon: <DocumentChartBarIcon className="w-8 h-8 text-yellow-600" />,
       change: '+3%',
@@ -69,7 +69,7 @@ function DashboardOverview() {
                 <span className={`inline-block mt-2 text-sm font-medium ${
                   card.changeType === 'positive' ? 'text-green-500' : 'text-red-500'
                 }`}>
-                  {card.change} from last month
+                  {card.change} so với tháng trước
                 </span>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg">
@@ -82,7 +82,7 @@ function DashboardOverview() {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">User Activity (Last 6 Months)</h3>
+          <h3 className="text-lg font-semibold mb-4">Hoạt Động Người Dùng (6 Tháng Qua)</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={userActivityData}>
@@ -103,7 +103,7 @@ function DashboardOverview() {
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Course Completion Rates</h3>
+          <h3 className="text-lg font-semibold mb-4">Tỷ Lệ Hoàn Thành Khóa Học</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={courseCompletionData}>
@@ -121,14 +121,14 @@ function DashboardOverview() {
       </div>
       
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
+        <h3 className="text-lg font-semibold mb-4">Hoạt Động Gần Đây</h3>
         <div className="space-y-4">
           {[
-            { user: 'Sarah Chen', action: 'completed', item: 'JavaScript Fundamentals', time: '2 hours ago' },
-            { user: 'James Wilson', action: 'enrolled in', item: 'React for Beginners', time: '5 hours ago' },
-            { user: 'Maria Garcia', action: 'scored 95% on', item: 'CSS Grid Quiz', time: '1 day ago' },
-            { user: 'Alex Johnson', action: 'submitted', item: 'Final Project', time: '2 days ago' },
-            { user: 'Emma Williams', action: 'received certificate for', item: 'Web Development Course', time: '3 days ago' },
+            { user: 'Sarah Chen', action: 'đã hoàn thành', item: 'JavaScript Cơ Bản', time: '2 giờ trước' },
+            { user: 'James Wilson', action: 'đã đăng ký', item: 'React cho Người Mới', time: '5 giờ trước' },
+            { user: 'Maria Garcia', action: 'đạt 95% điểm trong', item: 'Bài Kiểm Tra CSS Grid', time: '1 ngày trước' },
+            { user: 'Alex Johnson', action: 'đã nộp', item: 'Dự Án Cuối Khóa', time: '2 ngày trước' },
+            { user: 'Emma Williams', action: 'đã nhận chứng chỉ cho', item: 'Khóa Học Phát Triển Web', time: '3 ngày trước' },
           ].map((activity, index) => (
             <div key={index} className="flex items-center py-3 border-b border-gray-200 last:border-0">
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold mr-4">

@@ -9,40 +9,40 @@ const LecturesAndMaterials = () => {
   const courses = [
     {
       id: 1,
-      title: "Introduction to React",
+      title: "Giới Thiệu về React",
       modules: [
         {
           id: "m1",
-          title: "Getting Started with React",
+          title: "Bắt Đầu với React",
           lessons: [
-            { id: "l1-1", title: "What is React?", type: "video", duration: "10:25", watched: true },
-            { id: "l1-2", title: "Setting Up Your Environment", type: "video", duration: "15:40", watched: true },
-            { id: "l1-3", title: "React Basics PDF", type: "pdf", size: "2.4 MB", downloaded: true }
+            { id: "l1-1", title: "React là gì?", type: "video", duration: "10:25", watched: true },
+            { id: "l1-2", title: "Thiết Lập Môi Trường", type: "video", duration: "15:40", watched: true },
+            { id: "l1-3", title: "Tài Liệu Cơ Bản về React", type: "pdf", size: "2.4 MB", downloaded: true }
           ]
         },
         {
           id: "m2",
-          title: "React Components",
+          title: "Các Component Trong React",
           lessons: [
-            { id: "l2-1", title: "Functional Components", type: "video", duration: "12:10", watched: true },
-            { id: "l2-2", title: "Class Components", type: "video", duration: "14:30", watched: false },
-            { id: "l2-3", title: "Component Lifecycle", type: "video", duration: "18:15", watched: false },
-            { id: "l2-4", title: "Components Cheat Sheet", type: "pdf", size: "1.8 MB", downloaded: false }
+            { id: "l2-1", title: "Component Chức Năng", type: "video", duration: "12:10", watched: true },
+            { id: "l2-2", title: "Component Lớp", type: "video", duration: "14:30", watched: false },
+            { id: "l2-3", title: "Vòng Đời Component", type: "video", duration: "18:15", watched: false },
+            { id: "l2-4", title: "Tài Liệu Tóm Tắt về Component", type: "pdf", size: "1.8 MB", downloaded: false }
           ]
         }
       ]
     },
     {
       id: 2,
-      title: "Advanced JavaScript",
+      title: "JavaScript Nâng Cao",
       modules: [
         {
           id: "m3",
-          title: "JavaScript ES6 Features",
+          title: "Tính Năng JavaScript ES6",
           lessons: [
-            { id: "l3-1", title: "Arrow Functions", type: "video", duration: "8:45", watched: true },
-            { id: "l3-2", title: "Destructuring", type: "video", duration: "11:20", watched: false },
-            { id: "l3-3", title: "ES6 Reference Guide", type: "pdf", size: "3.2 MB", downloaded: true }
+            { id: "l3-1", title: "Hàm Mũi Tên", type: "video", duration: "8:45", watched: true },
+            { id: "l3-2", title: "Phân Rã", type: "video", duration: "11:20", watched: false },
+            { id: "l3-3", title: "Tài Liệu Tham Khảo ES6", type: "pdf", size: "3.2 MB", downloaded: true }
           ]
         }
       ]
@@ -59,15 +59,15 @@ const LecturesAndMaterials = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Lectures & Learning Materials</h1>
+        <h1 className="text-3xl font-bold mb-2">Bài Giảng & Tài Liệu Học Tập</h1>
         <p className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-          Access video lectures and downloadable materials for your courses.
+          Truy cập bài giảng video và tài liệu có thể tải xuống cho các khóa học của bạn.
         </p>
       </div>
 
       {/* Course selector */}
       <div className="mb-8">
-        <label className={`block mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Select Course:</label>
+        <label className={`block mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Chọn Khóa Học:</label>
         <select 
           className={`w-full md:w-1/2 p-3 rounded-lg border ${
             isDark 
@@ -87,7 +87,7 @@ const LecturesAndMaterials = () => {
         {/* Sidebar with course content */}
         <div className="lg:col-span-1">
           <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-4`}>
-            <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+            <h2 className="text-xl font-semibold mb-4">Nội Dung Khóa Học</h2>
             
             <div className="space-y-4">
               {selectedCourse.modules.map(module => (
@@ -177,9 +177,9 @@ const LecturesAndMaterials = () => {
                   </div>
                   
                   <div className={`border-t ${isDark ? "border-gray-700" : "border-gray-200"} pt-4 mt-4`}>
-                    <h3 className="font-medium text-lg mb-2">Description</h3>
+                    <h3 className="font-medium text-lg mb-2">Mô Tả</h3>
                     <p className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                      This video explains the core concepts of {activeLesson.title}. Watch closely to understand the key principles and best practices.
+                      Video này giải thích các khái niệm cốt lõi của {activeLesson.title}. Hãy xem kỹ để hiểu các nguyên tắc chính và thực hành tốt nhất.
                     </p>
                   </div>
                 </div>
@@ -191,20 +191,20 @@ const LecturesAndMaterials = () => {
                       <span className="material-icons text-red-500 text-6xl">picture_as_pdf</span>
                     </div>
                     <h3 className="text-center text-lg font-medium mb-2">{activeLesson.title}</h3>
-                    <p className="text-center text-sm text-gray-500 mb-4">Size: {activeLesson.size}</p>
+                    <p className="text-center text-sm text-gray-500 mb-4">Kích thước: {activeLesson.size}</p>
                     <div className="flex justify-center">
                       <button className={`px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center hover:bg-blue-700`}>
                         <span className="material-icons mr-2">file_download</span>
-                        Download PDF
+                        Tải Xuống PDF
                       </button>
                     </div>
                   </div>
                   
                   <div className={`border-t ${isDark ? "border-gray-700" : "border-gray-200"} pt-4 mt-4`}>
-                    <h3 className="font-medium text-lg mb-2">Document Information</h3>
+                    <h3 className="font-medium text-lg mb-2">Thông Tin Tài Liệu</h3>
                     <p className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                      This document contains essential reference material related to {activeLesson.title}. 
-                      Download it for offline study and reference.
+                      Tài liệu này chứa tài liệu tham khảo thiết yếu liên quan đến {activeLesson.title}. 
+                      Tải xuống để nghiên cứu và tham khảo ngoại tuyến.
                     </p>
                   </div>
                 </div>
@@ -213,9 +213,9 @@ const LecturesAndMaterials = () => {
           ) : (
             <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6 flex flex-col items-center justify-center min-h-[400px]`}>
               <span className="material-icons text-6xl text-gray-400 mb-4">video_library</span>
-              <h2 className="text-xl font-semibold mb-2">No Lesson Selected</h2>
+              <h2 className="text-xl font-semibold mb-2">Chưa Chọn Bài Học</h2>
               <p className={`text-center ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                Select a lesson from the course content to start learning.
+                Chọn một bài học từ nội dung khóa học để bắt đầu học.
               </p>
             </div>
           )}
