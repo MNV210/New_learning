@@ -19,11 +19,21 @@ import LecturesAndMaterials from "./pages/user/LecturesAndMaterials";
 import QuizzesAndAssessments from "./pages/user/QuizzesAndAssessments";
 import Certifications from "./pages/user/Certifications";
 import DiscussionForum from "./pages/user/DiscussionForum";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <HomeLayout />
+    },
+    {
+        path: "/login",
+        element: <LoginPage />
+    },
+    {
+        path: "/register",
+        element: <RegisterPage />
     },
     {
         path: "/admin",
