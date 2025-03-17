@@ -1,0 +1,75 @@
+import apiClient from './api';
+
+const courseService = {
+  // Lấy tất cả khóa học
+  getAllCourses: async () => {
+    try {
+      const response = await apiClient.get('/courses');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy một khóa học cụ thể theo ID
+  getCourseById: async (courseId) => {
+    try {
+      const response = await apiClient.get(`/courses/${courseId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy các bài giảng của một khóa học
+  getCourseLectures: async (courseId) => {
+    try {
+      const response = await apiClient.get(`/courses/${courseId}/lectures`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Tạo khóa học mới (chỉ Admin)
+  createCourse: async (courseData) => {
+    try {
+      const response = await apiClient.post('/courses', courseData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Cập nhật thông tin khóa học (chỉ Admin)
+  updateCourse: async (courseId, courseData) => {
+    try {
+      const response = await apiClient.put(`/courses/${courseId}`, courseData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Xóa khóa học (chỉ Admin)
+  deleteCourse: async (courseId) => {
+    try {
+      const response = await apiClient.delete(`/courses/${courseId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Đăng ký khóa học
+  enrollCourse: async (courseId, userData) => {
+    try {
+      const response = await apiClient.post(`/courses/${courseId}/enroll`, userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+export default courseService; 

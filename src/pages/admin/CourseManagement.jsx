@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -11,6 +11,8 @@ import {
   VideoCameraIcon,
   ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
+import { courseService } from '../../services';
+import { toast } from 'react-toastify';
 
 // Sample course data
 const initialCourses = [
@@ -110,7 +112,9 @@ const predefinedCategories = [
 ];
 
 function CourseManagement() {
-  const [courses, setCourses] = useState(initialCourses);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -137,6 +141,29 @@ function CourseManagement() {
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
   const [materialFormData, setMaterialFormData] = useState({ type: 'video', title: '', file: null });
 
+  // Fetch dữ liệu khóa học từ API khi component được mount
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  // Hàm để lấy danh sách khóa học từ API
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const coursesData = await courseService.getAllCourses();
+      setCourses(coursesData);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setError('Failed to load courses. Please try again later.');
+      // Sử dụng dữ liệu mẫu khi API gặp lỗi
+      setCourses(initialCourses);
+      toast.error('Error loading courses. Using sample data instead.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle search
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -153,9 +180,16 @@ function CourseManagement() {
   });
 
   // Handle delete course
-  const handleDeleteCourse = (id) => {
+  const handleDeleteCourse = async (id) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
-      setCourses(courses.filter(course => course.id !== id));
+      try {
+        await courseService.deleteCourse(id);
+        setCourses(courses.filter(course => course.id !== id));
+        toast.success('Course deleted successfully');
+      } catch (error) {
+        console.error('Error deleting course:', error);
+        toast.error('Failed to delete course. Please try again.');
+      }
     }
   };
 
@@ -310,37 +344,77 @@ function CourseManagement() {
   };
   
   // Save course (create new or update existing)
-  const handleSaveCourse = () => {
-    if (formData.title.trim() === '' || formData.instructor.trim() === '') {
-      alert('Please fill in all required fields');
-      return;
-    }
-    
-    if (editingCourse) {
-      // Update existing course
-      setCourses(prevCourses => 
-        prevCourses.map(course => 
-          course.id === editingCourse.id 
-            ? { ...course, ...formData, lastUpdated: new Date().toISOString().split('T')[0] } 
-            : course
-        )
-      );
-    } else {
-      // Add new course
-      const newCourse = {
-        id: Date.now(), // Simple way to generate unique ID
-        ...formData,
-        enrolled: 0,
-        lastUpdated: new Date().toISOString().split('T')[0]
+  const handleSaveCourse = async () => {
+    try {
+      setLoading(true);
+      
+      // Tạo dữ liệu khóa học để gửi lên API
+      const courseData = {
+        title: formData.title,
+        category: formData.category,
+        instructor: formData.instructor,
+        description: formData.description,
+        image: formData.image,
+        status: formData.status || 'Draft',
+        modules: formData.modules || []
       };
-      setCourses(prevCourses => [...prevCourses, newCourse]);
+
+      let updatedCourse;
+      
+      // Nếu đã có id, cập nhật khóa học hiện có, ngược lại tạo mới
+      if (editingCourse) {
+        updatedCourse = await courseService.updateCourse(editingCourse.id, courseData);
+        setCourses(courses.map(c => c.id === editingCourse.id ? updatedCourse : c));
+        toast.success('Course updated successfully');
+      } else {
+        updatedCourse = await courseService.createCourse(courseData);
+        setCourses([...courses, updatedCourse]);
+        toast.success('Course created successfully');
+      }
+      
+      setIsAddCourseModalOpen(false);
+    } catch (error) {
+      console.error('Error saving course:', error);
+      toast.error('Failed to save course. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    setIsAddCourseModalOpen(false);
   };
 
   // Get unique categories
   const categories = ['All', ...new Set(courses.map(course => course.category))];
+
+  // Thêm rendering cho trạng thái loading
+  if (loading && courses.length === 0) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Course Management</h1>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Thêm rendering cho trạng thái lỗi
+  if (error && courses.length === 0) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Course Management</h1>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={fetchCourses}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow">
