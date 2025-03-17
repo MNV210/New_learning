@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import userService from "../../services/userService";
 import { courseService } from "../../services";
-import { set } from "react-hook-form";
+import LoadingSkeleton from "../../components/LoadingSkeleton";
 
 const DashboardOverview = () => {
   const { theme } = useTheme();
@@ -10,15 +10,19 @@ const DashboardOverview = () => {
 
   const [courseUserRegister, setCourseUserRegister] = useState([]);
   const [courseInfomation, setCourseInfomation] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const getCourseUserRegister = async () => {
     try {
+      setLoading(true);
       const response = await courseService.getCourseUserRegister();
       console.log(response.data);
       setCourseUserRegister(response.data.courseUserRegister);
       setCourseInfomation(response.data.course);
+      setLoading(false);
       return response;
     } catch (error) {
+      setLoading(false);
       throw error;
     }
   }
@@ -26,6 +30,10 @@ const DashboardOverview = () => {
   useEffect(() => {
     getCourseUserRegister();
   }, []);
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   // Sample data - in a real app, this would come from API/backend
   const progressData = [
@@ -192,4 +200,4 @@ const DashboardOverview = () => {
   );
 };
 
-export default DashboardOverview; 
+export default DashboardOverview;
