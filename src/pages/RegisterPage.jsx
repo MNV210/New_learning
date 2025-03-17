@@ -1,12 +1,12 @@
 import React from 'react';
 import { Form, Input, Button } from 'antd';
 
-const RegisterPage: React.FC = () => {
-  const onFinish = (values: any) => {
+const RegisterPage = () => {
+  const onFinish = (values) => {
     console.log('Success:', values);
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
 

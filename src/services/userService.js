@@ -5,6 +5,7 @@ const userService = {
   login: async (credentials) => {
     try {
       const response = await apiClient.post('/auth/login', credentials);
+      console.log(response)
       // Lưu token vào localStorage
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);

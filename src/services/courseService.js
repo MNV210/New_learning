@@ -69,6 +69,16 @@ const courseService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  //lấy các khóa học đã đăng ký của user
+  getCourseUserRegister: async () => {
+    try {
+      const response = await apiClient.post('/courses/user_register');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

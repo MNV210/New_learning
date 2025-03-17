@@ -1,12 +1,27 @@
 import React from 'react';
 import { Form, Input, Button } from 'antd';
+import userService from '../services/userService';
+import { useNavigate } from 'react-router-dom';
 
-const LoginPage: React.FC = () => {
-  const onFinish = (values: any) => {
-    console.log('Success:', values);
+const LoginPage = () => {
+
+  const navigate = useNavigate();
+
+  const onFinish = async(values) => {
+    const response = await userService.login(values).then((response) => {
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      navigate('/user')
+      return response.data;
+
+    }).catch((error) => {
+      throw error;
+    });
+    console.log('Success:', response);
   };
 
-  const onFinishFailed = (errorInfo: any) => {
+  const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
 
@@ -21,10 +36,10 @@ const LoginPage: React.FC = () => {
           onFinishFailed={onFinishFailed}
         >
           <Form.Item
-            name="username"
+            name="email"
             rules={[{ required: true, message: 'Please input your username!' }]}
           >
-            <Input placeholder="Username" />
+            <Input placeholder="Email" />
           </Form.Item>
 
           <Form.Item

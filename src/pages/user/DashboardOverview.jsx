@@ -1,9 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import userService from "../../services/userService";
+import { courseService } from "../../services";
+import { set } from "react-hook-form";
 
 const DashboardOverview = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+
+  const [courseUserRegister, setCourseUserRegister] = useState([]);
+  const [courseInfomation, setCourseInfomation] = useState([]);
+
+  const getCourseUserRegister = async () => {
+    try {
+      const response = await courseService.getCourseUserRegister();
+      console.log(response.data);
+      setCourseUserRegister(response.data.courseUserRegister);
+      setCourseInfomation(response.data.course);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  useEffect(() => {
+    getCourseUserRegister();
+  }, []);
 
   // Sample data - in a real app, this would come from API/backend
   const progressData = [
@@ -39,10 +61,10 @@ const DashboardOverview = () => {
             <span className="material-icons text-blue-500 mr-3">school</span>
             <h2 className="text-xl font-semibold">Khóa Học Đang Học</h2>
           </div>
-          <p className="text-4xl font-bold text-blue-500">3</p>
-          <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+          <p className="text-4xl font-bold text-blue-500">{courseUserRegister?.length}</p>
+          {/* <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             Hoàn thành trung bình 68%
-          </p>
+          </p> */}
         </div>
 
         <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
@@ -51,12 +73,12 @@ const DashboardOverview = () => {
             <h2 className="text-xl font-semibold">Bài Kiểm Tra Đã Hoàn Thành</h2>
           </div>
           <p className="text-4xl font-bold text-green-500">8</p>
-          <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+          {/* <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             Điểm Trung Bình: 82%
-          </p>
+          </p> */}
         </div>
 
-        <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
+        {/* <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
           <div className="flex items-center mb-4">
             <span className="material-icons text-purple-500 mr-3">schedule</span>
             <h2 className="text-xl font-semibold">Thời Gian Học</h2>
@@ -65,38 +87,51 @@ const DashboardOverview = () => {
           <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             Tháng này
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* Course Progress */}
       <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
         <h2 className="text-xl font-semibold mb-4">Tiến Độ Khóa Học Của Bạn</h2>
         <div className="space-y-6">
-          {progressData.map((course) => (
-            <div key={course.id} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">{course.course}</h3>
-                <span className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                  {course.completed}/{course.totalLessons} bài học
-                </span>
+          {courseInfomation?.slice(0, 5).map((course) => {
+            // Tính % progress
+            const progress = course.lessons?.length 
+              ? (course.learn_progress?.length / course.lessons.length) * 100 
+              : 0;
+
+            return (
+              <div key={course.id} className="space-y-2">
+                {/* Tiêu đề khóa học + Tiến độ */}
+                <div className="flex justify-between items-center">
+                  <h3 className="font-medium">{course.title}</h3>
+                  <span className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                    {course.learn_progress?.length}/{course.lessons?.length} bài học
+                  </span>
+                </div>
+
+                {/* Thanh Progress */}
+                <div className={`h-2 w-full bg-gray-200 ${isDark ? "bg-gray-700" : ""} rounded-full overflow-hidden`}>
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                {/* Phần trăm tiến độ */}
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium text-blue-500">{progress.toFixed(1)}%</span>
+                </div>
               </div>
-              <div className={`h-2 w-full bg-gray-200 ${isDark && "bg-gray-700"} rounded-full overflow-hidden`}>
-                <div 
-                  className="h-full bg-blue-500 rounded-full" 
-                  style={{ width: `${course.progress}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-end">
-                <span className="text-sm font-medium text-blue-500">{course.progress}%</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Activities */}
-        <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
+        {/* <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
           <h2 className="text-xl font-semibold mb-4">Hoạt Động Gần Đây</h2>
           <div className="space-y-4">
             {recentActivities.map((activity) => (
@@ -130,10 +165,10 @@ const DashboardOverview = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Upcoming Deadlines */}
-        <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
+        {/* <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
           <h2 className="text-xl font-semibold mb-4">Hạn Chót Sắp Tới</h2>
           <div className="space-y-4">
             {upcomingDeadlines.map((deadline) => (
@@ -151,7 +186,7 @@ const DashboardOverview = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
