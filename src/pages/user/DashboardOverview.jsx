@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import userService from "../../services/userService";
-import { courseService } from "../../services";
+import { courseService, quizService } from "../../services";
 import LoadingSkeleton from "../../components/LoadingSkeleton";
 
 const DashboardOverview = () => {
@@ -10,6 +10,7 @@ const DashboardOverview = () => {
 
   const [courseUserRegister, setCourseUserRegister] = useState([]);
   const [courseInfomation, setCourseInfomation] = useState([]);
+  const [resultsQuizz,setResultsQuizz] = useState([])
   const [loading, setLoading] = useState(true);
 
   const getCourseUserRegister = async () => {
@@ -19,6 +20,10 @@ const DashboardOverview = () => {
       console.log(response.data);
       setCourseUserRegister(response.data.courseUserRegister);
       setCourseInfomation(response.data.course);
+
+      const response_quizz = await quizService.getQuizResulsByUserId();
+      setResultsQuizz(response_quizz.data)
+
       setLoading(false);
       return response;
     } catch (error) {
@@ -34,24 +39,6 @@ const DashboardOverview = () => {
   if (loading) {
     return <LoadingSkeleton />;
   }
-
-  // Sample data - in a real app, this would come from API/backend
-  const progressData = [
-    { id: 1, course: "Giới Thiệu về React", progress: 75, totalLessons: 12, completed: 9 },
-    { id: 2, course: "JavaScript Nâng Cao", progress: 40, totalLessons: 15, completed: 6 },
-    { id: 3, course: "Nguyên Tắc Thiết Kế Web", progress: 90, totalLessons: 10, completed: 9 }
-  ];
-
-  const recentActivities = [
-    { id: 1, type: "quiz", title: "Bài Kiểm Tra Cơ Bản React", date: "2 ngày trước", score: "85%" },
-    { id: 2, type: "lecture", title: "JavaScript Promises", date: "3 ngày trước", duration: "45 phút" },
-    { id: 3, type: "forum", title: "Đã đăng trong 'Thảo Luận React Hooks'", date: "5 ngày trước" }
-  ];
-
-  const upcomingDeadlines = [
-    { id: 1, title: "Nộp Dự Án JavaScript", course: "JavaScript Nâng Cao", dueDate: "15/05/2023" },
-    { id: 2, title: "Bài Kiểm Tra Cuối Cùng", course: "Nguyên Tắc Thiết Kế Web", dueDate: "20/05/2023" }
-  ];
 
   return (
     <div className="space-y-8">
@@ -80,7 +67,7 @@ const DashboardOverview = () => {
             <span className="material-icons text-green-500 mr-3">assignment_turned_in</span>
             <h2 className="text-xl font-semibold">Bài Kiểm Tra Đã Hoàn Thành</h2>
           </div>
-          <p className="text-4xl font-bold text-green-500">8</p>
+          <p className="text-4xl font-bold text-green-500">{resultsQuizz?.length}</p>
           {/* <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             Điểm Trung Bình: 82%
           </p> */}

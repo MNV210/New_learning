@@ -105,6 +105,15 @@ const quizService = {
     } catch (error) {
       throw error;
     }
+  },
+  //get quiz results in database (tu viet)
+  getQuizResulsByUserId: async () => {
+    try {
+      const response = await apiClient.post(`/quizz/user_results`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 
