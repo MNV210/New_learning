@@ -120,21 +120,19 @@ const courseDetails = () => {
           <div>
             <h2 className="text-xl font-semibold mb-3">Nội dung khóa học</h2>
             <div className="space-y-4">
-              {course?.lessons && course.lessons?.map((module, index) => (
-                <div key={module.id} className={`${isDark ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-4`}>
+              {course?.lessons && course.lessons?.map((lesson, index) => (
+                <div key={lesson.id} className={`${isDark ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-4`}>
                   <h3 className="font-medium text-lg mb-2">
-                    {module.title}
+                    {lesson.title}
                   </h3>
-                  {module.type === "video" ? (
-                    <video controls className="w-full">
-                      <source src={module.file_url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"} mb-2 line-clamp-2`}>
-                      {module?.content}
-                    </p>
-                  )}
+                    <embed
+                    src={lesson.file_url}
+                    className="w-full h-full"
+                    type={
+                      lesson.file_url?.endsWith('.pdf') 
+                        ? 'application/pdf'
+                        : 'text/plain'
+                    } />
                 </div>
               ))}
             </div>
