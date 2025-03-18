@@ -80,7 +80,7 @@ const UserDashboard = () => {
             {sidebarOpen && <span>Bài Kiểm Tra & Đánh Giá</span>}
           </NavLink>
           
-          <NavLink 
+          {/* <NavLink 
             to="/user/certifications" 
             className={({ isActive }) => 
               `flex items-center p-3 rounded-lg transition-colors ${
@@ -96,9 +96,9 @@ const UserDashboard = () => {
           >
             <span className="material-icons mr-2">workspace_premium</span>
             {sidebarOpen && <span>Chứng Chỉ</span>}
-          </NavLink>
+          </NavLink> */}
           
-          <NavLink 
+          {/* <NavLink 
             to="/user/forum" 
             className={({ isActive }) => 
               `flex items-center p-3 rounded-lg transition-colors ${
@@ -114,7 +114,7 @@ const UserDashboard = () => {
           >
             <span className="material-icons mr-2">forum</span>
             {sidebarOpen && <span>Diễn Đàn Thảo Luận</span>}
-          </NavLink>
+          </NavLink> */}
         </nav>
       </div>
 

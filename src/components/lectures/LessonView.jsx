@@ -1,15 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LessonSidebar from "./LessonSidebar";
 import LessonContent from "./LessonContent";
 import ChatTab from "./ChatTab";
+import { courseService } from "../../services";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useTheme } from "../../context/ThemeContext";
+import LoadingSkeleton from "../LoadingSkeleton";
 
-const LessonView = ({ lecture, isDark, onBackClick }) => {
+const LessonView = () => {
   const [activeLesson, setActiveLesson] = useState(null);
   const [activeTab, setActiveTab] = useState("lessons"); // "lessons" or "chat"
+    const { theme } = useTheme();
+    const isDark = theme === "dark";
+    const [loading,setLoading] = useState(false)
+
+  const [lecture, setLecture] = useState([])
+  const params= useParams()
+  const navigate = useNavigate()
+
+  const getDetailCourse = async () => {
+      try {
+        setLoading(true)
+        const courseDetails = await courseService.getCourseById(params.id);
+        setLecture(courseDetails.data);  
+      } catch (error) {
+        console.error('Error fetching course details:', error);
+        toast.error('Failed to load course details.');
+      } finally {
+        setLoading(false)
+      }
+  };
+
+  useEffect(()=> {
+    getDetailCourse()
+  },[params.id])
 
   const handleLessonClick = (lesson) => {
     setActiveLesson(lesson);
   };
+
+  const onBackClick = () => {
+    navigate(`/user/lecture/${params.id}`)
+  }
+
+  if(loading) {
+    return <LoadingSkeleton/>
+  }
 
   return (
     <div>

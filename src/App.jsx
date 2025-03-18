@@ -21,6 +21,8 @@ import Certifications from "./pages/user/Certifications";
 import DiscussionForum from "./pages/user/DiscussionForum";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import LectureDetails from "./components/lectures/LectureDetails";
+import LessonView from "./components/lectures/LessonView";
 
 
 const router = createBrowserRouter([
@@ -73,6 +75,14 @@ const router = createBrowserRouter([
             {
                 path: "lectures",
                 element: <LecturesAndMaterials />,
+            },
+            {
+                path:"lecture/:id",
+                element: <LectureDetails/>
+            },
+            {
+                path:"learn/:id",
+                element: <LessonView/>
             },
             {
                 path: "quizzes",

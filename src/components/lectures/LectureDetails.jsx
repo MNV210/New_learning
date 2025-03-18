@@ -1,12 +1,63 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useTheme } from "../../context/ThemeContext";
+import { courseService } from "../../services";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import "./LectureDetails.css"; // Import the CSS file
+import LoadingSkeleton from "../LoadingSkeleton";
 
-const LectureDetails = ({ lecture, isDark, onBackClick, onRegister, onGoToLearn }) => {
-  if (!lecture) return null;
-  
+const courseDetails = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const params = useParams();
+  const [course, setCourse] = useState({});
+  const [isRegistered,setIsRegistered] = useState(false)
+  const [loading,setLoading] = useState(false)
+
+  const navigate = useNavigate()
+
+  const getDetailCourse = async () => {
+    try {
+      setLoading(true)
+      const courseDetails = await courseService.getCourseById(params.id);
+      setCourse(courseDetails.data);
+
+      //check User Register Course 
+      const checkRegister = await courseService.checkUserRegister({'course_id':params.id})
+      if(checkRegister){
+        setIsRegistered(true)
+      }
+
+    } catch (error) {
+      console.error('Error fetching course details:', error);
+      toast.error('Failed to load course details.');
+    } finally {
+      setLoading(false)
+    }
+  };
+
+  useEffect(() => {
+    getDetailCourse();
+  }, []);
+
+  const goToList= ()=> {
+    navigate('/user/lectures')
+  }
+
+  const onGoToLearn = (course) => {
+    navigate(`/user/learn/${course.id}`)
+  }
+
+  if (!course || Object.keys(course).length === 0) return null;
+
+  if(loading) {
+    return <LoadingSkeleton/>
+  }
+
   return (
     <div>
       <button 
-        onClick={onBackClick}
+        onClick={goToList}
         className={`mb-4 flex items-center ${isDark ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-800"}`}
       >
         <span className="material-icons mr-1">arrow_back</span>
@@ -15,36 +66,34 @@ const LectureDetails = ({ lecture, isDark, onBackClick, onRegister, onGoToLearn 
       
       <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md overflow-hidden`}>
         <div className="h-64 bg-gray-300 relative">
-          <img 
-            src={lecture.thumbnail} 
-            alt={lecture.title} 
-            className="w-full h-full object-cover"
-          />
+        {course.thumbnail && (
+          <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+        )}
         </div>
         
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{lecture.title}</h1>
+              <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
               <div className="flex flex-wrap text-sm mb-4">
                 <span className={`mr-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
                   <span className="material-icons text-sm align-text-bottom mr-1">person</span>
-                  Giảng viên: {lecture.instructor}
+                  Giảng viên: {course.teacher?.name}
                 </span>
-                <span className={`mr-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                {/* <span className={`mr-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
                   <span className="material-icons text-sm align-text-bottom mr-1">schedule</span>
-                  Thời lượng: {lecture.duration}
-                </span>
+                  Thời lượng:
+                </span> */}
                 <span className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
                   <span className="material-icons text-sm align-text-bottom mr-1">signal_cellular_alt</span>
-                  Cấp độ: {lecture.level}
+                  Cấp độ: {course.level}
                 </span>
               </div>
             </div>
             
-            {lecture.isRegistered ? (
+            {isRegistered ? (
               <button 
-                onClick={onGoToLearn} 
+                onClick={() => onGoToLearn(course)} 
                 className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium flex items-center hover:bg-green-700 transition-colors mt-4 md:mt-0"
               >
                 <span className="material-icons mr-2">play_circle</span>
@@ -52,7 +101,7 @@ const LectureDetails = ({ lecture, isDark, onBackClick, onRegister, onGoToLearn 
               </button>
             ) : (
               <button 
-                onClick={() => onRegister(lecture.id)} 
+                // onClick={() => onRegister(course.id)} 
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center hover:bg-blue-700 transition-colors mt-4 md:mt-0"
               >
                 <span className="material-icons mr-2">how_to_reg</span>
@@ -64,21 +113,28 @@ const LectureDetails = ({ lecture, isDark, onBackClick, onRegister, onGoToLearn 
           <div className={`${isDark ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-5 mb-6`}>
             <h2 className="text-xl font-semibold mb-3">Mô tả khóa học</h2>
             <p className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-              {lecture.description}
+              {course.description}
             </p>
           </div>
           
           <div>
             <h2 className="text-xl font-semibold mb-3">Nội dung khóa học</h2>
             <div className="space-y-4">
-              {lecture.modules.map((module, index) => (
+              {course?.lessons && course.lessons?.map((module, index) => (
                 <div key={module.id} className={`${isDark ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-4`}>
                   <h3 className="font-medium text-lg mb-2">
-                    Phần {index + 1}: {module.title}
+                    {module.title}
                   </h3>
-                  <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"} mb-2`}>
-                    {module.lessons.length} bài học
-                  </p>
+                  {module.type === "video" ? (
+                    <video controls className="w-full">
+                      <source src={module.file_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"} mb-2 line-clamp-2`}>
+                      {module?.content}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -89,4 +145,4 @@ const LectureDetails = ({ lecture, isDark, onBackClick, onRegister, onGoToLearn 
   );
 };
 
-export default LectureDetails; 
+export default courseDetails;

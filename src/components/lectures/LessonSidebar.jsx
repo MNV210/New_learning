@@ -4,13 +4,10 @@ const LessonSidebar = ({ lecture, activeLesson, isDark, onLessonClick }) => {
   return (
     <div className="p-4">
       <h2 className="text-lg font-semibold mb-4">Danh sách bài học</h2>
-      
       <div className="space-y-4 max-h-[calc(100vh-260px)] overflow-y-auto pr-2">
-        {lecture.modules.map((module, moduleIndex) => (
-          <div key={module.id}>
-            <h3 className="font-medium text-md mb-2">Phần {moduleIndex + 1}: {module.title}</h3>
+
             <ul className="space-y-2">
-              {module.lessons.map(lesson => (
+              {lecture?.lessons?.map(lesson => (
                 <li key={lesson.id}>
                   <button
                     onClick={() => onLessonClick(lesson)}
@@ -50,8 +47,6 @@ const LessonSidebar = ({ lecture, activeLesson, isDark, onLessonClick }) => {
                 </li>
               ))}
             </ul>
-          </div>
-        ))}
       </div>
     </div>
   );

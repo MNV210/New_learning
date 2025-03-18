@@ -79,6 +79,16 @@ const courseService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // kiểm tra user đã đăng ký khóa học chưa(TV)
+  checkUserRegister:async(data) => {
+    try {
+      const response = await apiClient.post('/courses/check_register',data);
+      return response.data
+    }catch (error) {
+      throw error
+    }
   }
 };
 

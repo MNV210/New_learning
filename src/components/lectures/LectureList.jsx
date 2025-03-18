@@ -11,7 +11,7 @@ const LectureList = ({ lectures, isDark, onLectureClick }) => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {lectures.map(lecture => (
+        {lectures?.map(lecture => (
           <div 
             key={lecture.id} 
             className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer`}
