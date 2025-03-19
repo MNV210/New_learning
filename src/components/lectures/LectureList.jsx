@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { courseService } from "../../services";
 
 const LectureList = ({ lectures, isDark, onLectureClick }) => {
   return (
@@ -23,13 +24,13 @@ const LectureList = ({ lectures, isDark, onLectureClick }) => {
                 alt={lecture.title} 
                 className="w-full h-full object-cover"
               />
-              <div className={`absolute top-2 right-2 px-2 py-1 text-xs rounded-full ${
-                lecture.isRegistered 
+              {/* <div className={`absolute top-2 right-2 px-2 py-1 text-xs rounded-full ${
+                isRegistered 
                   ? "bg-green-500 text-white" 
                   : "bg-gray-200 text-gray-800"
               }`}>
-                {lecture.isRegistered ? "Đã đăng ký" : "Chưa đăng ký"}
-              </div>
+                {isRegistered ? "Đã đăng ký" : "Chưa đăng ký"}
+              </div> */}
             </div>
             <div className="p-4">
               <h3 className="text-lg font-semibold mb-2">{lecture.title}</h3>
@@ -58,4 +59,4 @@ const LectureList = ({ lectures, isDark, onLectureClick }) => {
   );
 };
 
-export default LectureList; 
+export default LectureList;

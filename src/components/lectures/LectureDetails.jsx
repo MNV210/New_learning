@@ -24,7 +24,7 @@ const courseDetails = () => {
 
       //check User Register Course 
       const checkRegister = await courseService.checkUserRegister({'course_id':params.id})
-      if(checkRegister){
+      if(checkRegister.data!=null){
         setIsRegistered(true)
       }
 
@@ -45,7 +45,7 @@ const courseDetails = () => {
   }
 
   const onGoToLearn = (course) => {
-    navigate(`/user/learn/${course.id}`)
+    navigate(`/user/learn/${course.id}/lesson/${course?.lessons[0]?.id}`)
   }
 
   if (!course || Object.keys(course).length === 0) return null;
@@ -125,14 +125,21 @@ const courseDetails = () => {
                   <h3 className="font-medium text-lg mb-2">
                     {lesson.title}
                   </h3>
+                  {/* {lesson.file_url ? (
                     <embed
-                    src={lesson.file_url}
-                    className="w-full h-full"
-                    type={
-                      lesson.file_url?.endsWith('.pdf') 
-                        ? 'application/pdf'
-                        : 'text/plain'
-                    } />
+                      src={lesson.file_url}
+                      className="w-full h-full"
+                      type={
+                        lesson.file_url?.endsWith('.pdf') 
+                          ? 'application/pdf'
+                          : 'text/plain'
+                      }
+                    />
+                  ) : (
+                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                      No file available for this lesson.
+                    </p>
+                  )} */}
                 </div>
               ))}
             </div>

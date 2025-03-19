@@ -12,9 +12,9 @@ const lectureService = {
   },
 
   // Lấy chi tiết một bài giảng cụ thể
-  getLectureById: async (courseId, lectureId) => {
+  getLectureById: async (lectureId) => {
     try {
-      const response = await apiClient.get(`/courses/${courseId}/lectures/${lectureId}`);
+      const response = await apiClient.get(`/lessons/${lectureId}`);
       return response.data;
     } catch (error) {
       throw error;
