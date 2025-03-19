@@ -1,16 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import chatService from "../../services/chatService";
 
 const ChatTab = ({ isDark, lecture }) => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "system",
-      text: `Chào mừng bạn đến với khóa học "${lecture?.title || 'Khóa học'}". Bạn có thể đặt câu hỏi về bất kỳ nội dung nào trong khóa học này.`,
-      timestamp: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-
+  const params = useParams()
+  console.log(params)
   const handleSendMessage = (e) => {
     e.preventDefault();
     
@@ -35,6 +31,17 @@ const ChatTab = ({ isDark, lecture }) => {
     setMessages([...messages, userMessage, systemResponse]);
     setNewMessage("");
   };
+
+  const getAllMesssage= async() => {
+    const response = await chatService.getAllMessage({
+      lesson_id : params.lesson_id
+    })
+    console.log(response)
+  }
+
+  useEffect(()=>{
+    getAllMesssage()
+  },[])
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);

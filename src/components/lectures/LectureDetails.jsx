@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./LectureDetails.css"; // Import the CSS file
 import LoadingSkeleton from "../LoadingSkeleton";
+import userRegisterCourse from "../../services/userRegisterService";
 
 const courseDetails = () => {
   const { theme } = useTheme();
@@ -46,6 +47,13 @@ const courseDetails = () => {
 
   const onGoToLearn = (course) => {
     navigate(`/user/learn/${course.id}/lesson/${course?.lessons[0]?.id}`)
+  }
+
+  const onRegisterCourse = async(courseId) => {
+    const response = await userRegisterCourse.registerCourse({
+      course_id:courseId,
+    })
+    console.log(response.data)
   }
 
   if (!course || Object.keys(course).length === 0) return null;
@@ -101,7 +109,7 @@ const courseDetails = () => {
               </button>
             ) : (
               <button 
-                // onClick={() => onRegister(course.id)} 
+                onClick={() => onRegisterCourse(course.id)} 
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center hover:bg-blue-700 transition-colors mt-4 md:mt-0"
               >
                 <span className="material-icons mr-2">how_to_reg</span>
