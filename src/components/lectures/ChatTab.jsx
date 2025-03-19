@@ -7,36 +7,37 @@ const ChatTab = ({ isDark, lecture }) => {
   const [newMessage, setNewMessage] = useState("");
   const params = useParams()
   console.log(params)
-  const handleSendMessage = (e) => {
-    e.preventDefault();
+  // const handleSendMessage = (e) => {
+  //   e.preventDefault();
     
-    if (!newMessage.trim()) return;
+  //   if (!newMessage.trim()) return;
     
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      sender: "user",
-      text: newMessage,
-      timestamp: new Date().toISOString()
-    };
+  //   // Add user message
+  //   const userMessage = {
+  //     id: messages.length + 1,
+  //     type: "user",
+  //     text: newMessage,
+  //     timestamp: new Date().toISOString()
+  //   };
     
-    // Simulate system response
-    const systemResponse = {
-      id: messages.length + 2,
-      sender: "system",
-      text: `Cảm ơn câu hỏi của bạn về "${newMessage}". Giảng viên sẽ phản hồi sớm nhất có thể.`,
-      timestamp: new Date().toISOString()
-    };
+  //   // Simulate system response
+  //   const systemResponse = {
+  //     id: messages.length + 2,
+  //     type: "system",
+  //     text: `Cảm ơn câu hỏi của bạn về "${newMessage}". Giảng viên sẽ phản hồi sớm nhất có thể.`,
+  //     timestamp: new Date().toISOString()
+  //   };
     
-    setMessages([...messages, userMessage, systemResponse]);
-    setNewMessage("");
-  };
+  //   setMessages([...messages, userMessage, systemResponse]);
+  //   setNewMessage("");
+  // };
 
   const getAllMesssage= async() => {
     const response = await chatService.getAllMessage({
       lesson_id : params.lesson_id
     })
-    console.log(response)
+    console.log(response.data)
+    setMessages(response.data)
   }
 
   useEffect(()=>{
@@ -58,24 +59,24 @@ const ChatTab = ({ isDark, lecture }) => {
         {messages.map(message => (
           <div 
             key={message.id} 
-            className={`mb-3 flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+            className={`mb-3 flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
           >
             <div 
               className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                message.sender === "user" 
+                message.type === "user" 
                   ? isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white" 
                   : isDark ? "bg-gray-600 text-white" : "bg-white text-gray-800"
               } shadow`}
             >
               <div className="flex items-center mb-1">
-                <span className={`font-medium text-sm ${message.sender === "user" ? "" : "text-green-400"}`}>
-                  {message.sender === "user" ? "Bạn" : "Hệ thống"}
+                <span className={`font-medium text-sm ${message.type === "user" ? "" : "text-green-400"}`}>
+                  {message.type === "user" ? "Bạn" : "Hệ thống"}
                 </span>
-                <span className={`text-xs ml-2 ${isDark ? "text-gray-300" : "text-gray-500"}`}>
-                  {formatTime(message.timestamp)}
-                </span>
+                {/* <span className={`text-xs ml-2 ${isDark ? "text-orage-300" : "text-orage-500"}`}>
+                  {formatTime(message.created_at)}
+                </span> */}
               </div>
-              <p className="text-sm">{message.text}</p>
+              <p className="text-sm">{message.message}</p>
             </div>
           </div>
         ))}
@@ -83,7 +84,7 @@ const ChatTab = ({ isDark, lecture }) => {
       
       {/* Message input */}
       <div className={`${isDark ? "bg-gray-700" : "bg-gray-100"} rounded-lg p-2`}>
-        <form onSubmit={handleSendMessage} className="flex items-center">
+        <form className="flex items-center">
           <input
             type="text"
             value={newMessage}
