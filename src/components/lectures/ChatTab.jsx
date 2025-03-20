@@ -34,7 +34,7 @@ const ChatTab = ({ isDark, lecture }) => {
 
   const getAllMesssage= async() => {
     const response = await chatService.getAllMessage({
-      lesson_id : params.lesson_id
+      course_id : params.course_id
     })
     console.log(response.data)
     setMessages(response.data)
