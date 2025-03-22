@@ -54,7 +54,7 @@ const userService = {
   // Lấy danh sách tất cả người dùng (chỉ Admin)
   getAllUsers: async () => {
     try {
-      const response = await apiClient.get('/admin/users');
+      const response = await apiClient.get('/users');
       return response.data;
     } catch (error) {
       throw error;
@@ -64,7 +64,7 @@ const userService = {
   // Lấy thông tin chi tiết của một người dùng (chỉ Admin)
   getUserById: async (userId) => {
     try {
-      const response = await apiClient.get(`/admin/users/${userId}`);
+      const response = await apiClient.get(`/users/${userId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -74,7 +74,7 @@ const userService = {
   // Cập nhật vai trò người dùng (chỉ Admin)
   updateUserRole: async (userId, roleData) => {
     try {
-      const response = await apiClient.put(`/admin/users/${userId}/role`, roleData);
+      const response = await apiClient.put(`/users/${userId}/role`, roleData);
       return response.data;
     } catch (error) {
       throw error;
@@ -84,7 +84,7 @@ const userService = {
   // Vô hiệu hóa tài khoản người dùng (chỉ Admin)
   deactivateUser: async (userId) => {
     try {
-      const response = await apiClient.put(`/admin/users/${userId}/deactivate`);
+      const response = await apiClient.put(`/users/${userId}/deactivate`);
       return response.data;
     } catch (error) {
       throw error;
