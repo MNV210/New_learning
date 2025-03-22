@@ -7,7 +7,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon 
 } from '@heroicons/react/24/outline';
-import { Modal, Form, Input, Select, Button, Upload, message, Popconfirm } from 'antd';
+import { Modal, Form, Input, Select, Button, Upload, message, Popconfirm, Pagination } from 'antd';
 import { UploadOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useForm, Controller } from 'react-hook-form';
 import userService from '../../services/userService';
@@ -41,6 +41,7 @@ function UserManagement() {
   const [editingUser, setEditingUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   
   // React Hook Form setup
   const { control, handleSubmit, formState: { errors }, reset } = useForm({
@@ -90,6 +91,13 @@ function UserManagement() {
         return 0;
       });
   }, [users, searchTerm, roleFilter, sortConfig]);
+
+  // Calculate paginated data
+  const paginatedUsers = useMemo(() => {
+    const { current, pageSize } = pagination;
+    const startIndex = (current - 1) * pageSize;
+    return filteredUsers.slice(startIndex, startIndex + pageSize);
+  }, [filteredUsers, pagination]);
 
   // Handle sort
   const requestSort = (key) => {
@@ -279,6 +287,11 @@ function UserManagement() {
     return ROLE_DISPLAY[USER_ROLES.STUDENT];
   };
 
+  // Handle pagination change
+  const handlePaginationChange = (page, pageSize) => {
+    setPagination({ current: page, pageSize });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow">
       {/* Header */}
@@ -363,8 +376,8 @@ function UserManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => {
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((user) => {
                   const roleInfo = getRoleDisplay(user.role);
                   return (
                     <tr key={user.id} className="hover:bg-gray-50">
@@ -414,10 +427,18 @@ function UserManagement() {
           </table>
         )}
         
-        <div className="px-6 py-4 border-t border-gray-200">
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
           <p className="text-sm text-gray-500">
-            Hiển thị {filteredUsers.length} / {users.length} người dùng
+            Hiển thị {pagination.current === 1 ? 1 : (pagination.current - 1) * pagination.pageSize + 1} - {Math.min(pagination.current * pagination.pageSize, filteredUsers.length)} / {filteredUsers.length} người dùng
           </p>
+          <Pagination
+            current={pagination.current}
+            pageSize={pagination.pageSize}
+            total={filteredUsers.length}
+            onChange={handlePaginationChange}
+            showSizeChanger
+            pageSizeOptions={['5', '10', '20', '50']}
+          />
         </div>
       </div>
       
