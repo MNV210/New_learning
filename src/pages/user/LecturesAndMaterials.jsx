@@ -3,7 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 import LectureList from "../../components/lectures/LectureList";
 import LectureDetails from "../../components/lectures/LectureDetails";
 import LessonView from "../../components/lectures/LessonView";
-import { courseService, lectureService } from "../../services";
+import { courseService, lectureService, categoryService } from "../../services";
 import { toast } from 'react-toastify';
 import LoadingSkeleton from "../../components/LoadingSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const LecturesAndMaterials = () => {
   
   // States for lectures and UI
   const [lectures, setLectures] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLecture, setSelectedLecture] = useState(null);
@@ -22,28 +23,43 @@ const LecturesAndMaterials = () => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   
 
-  // Fetch dữ liệu khóa học từ API khi component được mount
+  // Fetch dữ liệu khóa học và danh mục từ API khi component được mount
   useEffect(() => {
-    fetchLectures();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch categories first
+        const categoriesData = await categoryService.getAllCategories();
+        const categories = categoriesData.data || categoriesData.categories || [];
+        setCategories(categories);
+        
+        // Then fetch courses
+        const coursesData = await courseService.getAllCourses();
+        const courses = coursesData.data || coursesData.courses || [];
+        
+        // Enrich courses with category names
+        const enrichedCourses = courses.map(course => {
+          const category = categories.find(cat => cat.id === course.categoryId);
+          return {
+            ...course,
+            categoryName: category ? category.name : 'Không có danh mục'
+          };
+        });
+        
+        setLectures(enrichedCourses);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError('Failed to load courses. Please try again later.');
+        toast.error('Error loading courses. Using sample data instead.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
   }, []);
-
-  // Hàm để lấy danh sách khóa học từ API
-  const fetchLectures = async () => {
-    try {
-      setLoading(true);
-      const coursesData = await courseService.getAllCourses();
-      console.log(coursesData.data)
-      setLectures(coursesData.data);
-      setError(null);
-    } catch (error) {
-      // console.error('Error fetching courses:', error);
-      setError('Failed to load courses. Please try again later.');
-      // Sử dụng dữ liệu mẫu khi API gặp lỗi
-      toast.error('Error loading courses. Using sample data instead.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Hàm để lấy chi tiết bài giảng từ API
   const fetchLectureDetails = async (courseId) => {
@@ -142,14 +158,14 @@ const LecturesAndMaterials = () => {
     setSelectedLesson(null);
   };
 
-  const handleLessonClick = (lesson) => {
-    setSelectedLesson(lesson);
-    // Nếu đã chọn một bài giảng, lấy tài liệu của nó
-    if (selectedLecture && lesson) {
-      fetchLectureMaterials(selectedLecture.id, lesson.id);
-    }
-    setCurrentView("learn");
-  };
+  // const handleLessonClick = (lesson) => {
+  //   setSelectedLesson(lesson);
+  //   // Nếu đã chọn một bài giảng, lấy tài liệu của nó
+  //   if (selectedLecture && lesson) {
+  //     fetchLectureMaterials(selectedLecture.id, lesson.id);
+  //   }
+  //   setCurrentView("learn");
+  // };
 
   // Render loading state
     if (loading) {
@@ -165,7 +181,42 @@ const LecturesAndMaterials = () => {
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={fetchLectures}
+              onClick={() => {
+                const fetchData = async () => {
+                  try {
+                    setLoading(true);
+                    
+                    // Fetch categories first
+                    const categoriesData = await categoryService.getAllCategories();
+                    const categories = categoriesData.data || categoriesData.categories || [];
+                    setCategories(categories);
+                    
+                    // Then fetch courses
+                    const coursesData = await courseService.getAllCourses();
+                    const courses = coursesData.data || coursesData.courses || [];
+                    
+                    // Enrich courses with category names
+                    const enrichedCourses = courses.map(course => {
+                      const category = categories.find(cat => cat.id === course.categoryId);
+                      return {
+                        ...course,
+                        categoryName: category ? category.name : 'Không có danh mục'
+                      };
+                    });
+                    
+                    setLectures(enrichedCourses);
+                    setError(null);
+                  } catch (error) {
+                    console.error('Error fetching data:', error);
+                    setError('Failed to load courses. Please try again later.');
+                    toast.error('Error loading courses. Using sample data instead.');
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+                
+                fetchData();
+              }}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Thử lại

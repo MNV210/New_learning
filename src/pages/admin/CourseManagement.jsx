@@ -11,7 +11,7 @@ import {
   VideoCameraIcon,
   ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
-import { courseService } from '../../services';
+import { courseService, categoryService } from '../../services';
 import { toast } from 'react-toastify';
 
 
@@ -20,7 +20,9 @@ import { toast } from 'react-toastify';
 
 function CourseManagement() {
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
@@ -29,7 +31,7 @@ function CourseManagement() {
   // Trạng thái form cho modal
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Programming',
+    categoryId: '',
     instructor: '',
     description: '',
     status: 'Draft',
@@ -46,9 +48,10 @@ function CourseManagement() {
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
   const [materialFormData, setMaterialFormData] = useState({ type: 'video', title: '', file: null });
 
-  // Fetch dữ liệu khóa học từ API khi component được mount
+  // Fetch dữ liệu khóa học và danh mục từ API khi component được mount
   useEffect(() => {
     fetchCourses();
+    fetchCategories();
   }, []);
 
   // Hàm để lấy danh sách khóa học từ API
@@ -64,6 +67,30 @@ function CourseManagement() {
       toast.error('Không thể tải khóa học: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Hàm để lấy danh sách danh mục từ API
+  const fetchCategories = async () => {
+    try {
+      setCategoryLoading(true);
+      
+      const response = await categoryService.getAllCategories();
+      const categoriesData = response.data || response.categories || [];
+      setCategories(categoriesData.filter(cat => cat.status === 'active'));
+      
+      // Đặt categoryId mặc định nếu có danh mục
+      if (categoriesData.length > 0 && !formData.categoryId) {
+        setFormData(prev => ({
+          ...prev,
+          categoryId: categoriesData[0].id
+        }));
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải danh mục:', error);
+      toast.error('Không thể tải danh mục: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -103,7 +130,7 @@ function CourseManagement() {
     setEditingCourse(course);
     setFormData({
       title: course.title,
-      category: course.category,
+      categoryId: course.categoryId || (categories.length > 0 ? categories[0].id : ''),
       instructor: course.instructor,
       description: course.description || '',
       status: course.status,
@@ -119,7 +146,7 @@ function CourseManagement() {
     setEditingCourse(null);
     setFormData({
       title: '',
-      category: 'Programming',
+      categoryId: categories.length > 0 ? categories[0].id : '',
       instructor: '',
       description: '',
       status: 'Draft',
@@ -128,6 +155,42 @@ function CourseManagement() {
     });
     setActiveTab('details');
     setIsAddCourseModalOpen(true);
+  };
+
+  // Xử lý form submission khi tạo mới hoặc cập nhật khóa học
+  const handleSubmitCourse = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (editingCourse) {
+        // Cập nhật khóa học hiện có
+        await courseService.updateCourse(editingCourse.id, formData);
+        toast.success('Khóa học đã được cập nhật thành công');
+      } else {
+        // Tạo khóa học mới
+        await courseService.createCourse(formData);
+        toast.success('Khóa học mới đã được tạo thành công');
+      }
+      
+      // Đóng modal và reset form
+      setIsAddCourseModalOpen(false);
+      setEditingCourse(null);
+      setFormData({
+        title: '',
+        categoryId: categories.length > 0 ? categories[0].id : '',
+        instructor: '',
+        description: '',
+        status: 'Draft',
+        image: '',
+        modules: []
+      });
+      
+      // Fetch updated data from API
+      fetchCourses();
+    } catch (error) {
+      console.error('Lỗi khi lưu khóa học:', error);
+      toast.error('Không thể lưu khóa học. Vui lòng thử lại.');
+    }
   };
 
   // Hiển thị trạng thái đang tải
@@ -265,6 +328,189 @@ function CourseManagement() {
           </p>
         </div>
       </div>
+
+      {/* Modal for adding/editing course */}
+      {isAddCourseModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {editingCourse ? 'Chỉnh Sửa Khóa Học' : 'Thêm Khóa Học Mới'}
+              </h3>
+              <button 
+                onClick={() => setIsAddCourseModalOpen(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="border-b border-gray-200">
+              <nav className="flex">
+                <button
+                  className={`px-6 py-3 border-b-2 ${
+                    activeTab === 'details' 
+                      ? 'border-blue-500 text-blue-600' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('details')}
+                >
+                  Thông tin cơ bản
+                </button>
+                <button
+                  className={`px-6 py-3 border-b-2 ${
+                    activeTab === 'modules' 
+                      ? 'border-blue-500 text-blue-600' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab('modules')}
+                  disabled={!editingCourse && !formData.title}
+                >
+                  Nội dung khóa học
+                </button>
+              </nav>
+            </div>
+            
+            <form onSubmit={handleSubmitCourse}>
+              {activeTab === 'details' && (
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                      Tên khóa học <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nhập tên khóa học"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
+                      Danh mục <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="categoryId"
+                      name="categoryId"
+                      value={formData.categoryId}
+                      onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {categoryLoading ? (
+                        <option value="">Đang tải danh mục...</option>
+                      ) : categories.length === 0 ? (
+                        <option value="">Không có danh mục</option>
+                      ) : (
+                        categories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="instructor" className="block text-sm font-medium text-gray-700 mb-1">
+                      Giảng viên <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="instructor"
+                      name="instructor"
+                      value={formData.instructor}
+                      onChange={(e) => setFormData({...formData, instructor: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nhập tên giảng viên"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                      Mô tả
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      rows="3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nhập mô tả khóa học"
+                    ></textarea>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                      Trạng thái
+                    </label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={(e) => setFormData({...formData, status: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Draft">Bản nháp</option>
+                      <option value="Published">Xuất bản</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                      Ảnh khóa học (URL)
+                    </label>
+                    <input
+                      type="text"
+                      id="image"
+                      name="image"
+                      value={formData.image}
+                      onChange={(e) => setFormData({...formData, image: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nhập URL ảnh khóa học"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'modules' && (
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Thêm các module và bài giảng cho khóa học
+                  </p>
+                  
+                  {/* Module list would go here */}
+                </div>
+              )}
+              
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCourseModalOpen(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                >
+                  Hủy bỏ
+                </button>
+                {activeTab === 'details' && (
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  >
+                    {editingCourse ? 'Cập Nhật' : 'Tạo Khóa Học'}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

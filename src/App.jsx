@@ -1,5 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";  
 import { ThemeProvider } from "./context/ThemeContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Import Home Layout
 import HomeLayout from "./pages/HomeLayout";
@@ -9,6 +11,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import DashboardOverview from "./pages/admin/DashboardOverview";
 import UserManagement from "./pages/admin/UserManagement";
 import CourseManagement from "./pages/admin/CourseManagement";
+import CategoryManagement from "./pages/admin/CategoryManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import NotificationsPage from "./pages/admin/NotificationsPage";
 
@@ -53,6 +56,10 @@ const router = createBrowserRouter([
             {
                 path: "courses",
                 element: <CourseManagement />,
+            },
+            {
+                path: "categories",
+                element: <CategoryManagement />,
             },
             {
                 path: "analytics",
@@ -104,6 +111,7 @@ function App() {
     return (
         <ThemeProvider>
             <RouterProvider router={router} />
+            <ToastContainer position="top-right" autoClose={3000} />
         </ThemeProvider>
     );
 }
