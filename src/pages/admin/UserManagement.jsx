@@ -157,18 +157,6 @@ function UserManagement() {
       role: user.role?.toLowerCase() || 'student',
     });
     
-    // Set avatar if exists
-    if (user.avatar) {
-      setFileList([{
-        uid: '-1',
-        name: 'avatar.png',
-        status: 'done',
-        // url: user.avatar,
-      }]);
-    } else {
-      setFileList([]);
-    }
-    
     setIsModalOpen(true);
   };
 
@@ -262,12 +250,12 @@ function UserManagement() {
   };
 
   // Render sort icon
-  const renderSortIcon = (key) => {
-    if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'ascending' 
-      ? <ArrowUpIcon className="w-4 h-4 ml-1" />
-      : <ArrowDownIcon className="w-4 h-4 ml-1" />;
-  };
+  // const renderSortIcon = (key) => {
+  //   if (sortConfig.key !== key) return null;
+  //   return sortConfig.direction === 'ascending' 
+  //     ? <ArrowUpIcon className="w-4 h-4 ml-1" />
+  //     : <ArrowDownIcon className="w-4 h-4 ml-1" />;
+  // };
 
   // Get role display info
   const getRoleDisplay = (role) => {
@@ -351,23 +339,23 @@ function UserManagement() {
                   onClick={() => requestSort('name')}
                 >
                   <div className="flex items-center">
-                    Họ tên {renderSortIcon('name')}
+                    Họ tên 
                   </div>
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => requestSort('email')}
+                  // onClick={() => requestSort('email')}
                 >
                   <div className="flex items-center">
-                    Email {renderSortIcon('email')}
+                    Email
                   </div>
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => requestSort('role')}
+                  
                 >
                   <div className="flex items-center">
-                    Vai trò {renderSortIcon('role')}
+                    Vai trò 
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
