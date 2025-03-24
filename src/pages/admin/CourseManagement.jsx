@@ -179,7 +179,7 @@ function CourseManagement() {
     reset({
       title: course.title,
       description: course.description || '',
-      category: course.categoryId,
+      category: course.category_id,
       teacher: course.teacher?.id || '',
       level: course.level || undefined, // Ensure level is reset
       thumbnail: null,
@@ -431,6 +431,7 @@ function CourseManagement() {
         )}
         
         {filteredCourses.length === 0 ? (
+          // {console.log(filteredCourses)}
           <div className="text-center py-8">
             <p className="text-gray-500">Không tìm thấy khóa học nào.</p>
           </div>
@@ -485,14 +486,14 @@ function CourseManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {categories.find(c => c.id === course.categoryId)?.name || 'Không có danh mục'}
+                        {categories.find(c => c.id === course.category_id)?.name || 'Không có danh mục'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {course.pdfFileUrl ? (
+                      {course.file_url ? (
                         <div className="flex items-center text-sm text-blue-600">
                           <FilePdfOutlined className="mr-1" />
-                          <a href={course.pdfFileUrl} target="_blank" rel="noopener noreferrer">
+                          <a href={course.file_url} target="_blank" rel="noopener noreferrer">
                             Xem tài liệu
                           </a>
                         </div>
