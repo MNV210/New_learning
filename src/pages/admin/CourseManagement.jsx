@@ -21,8 +21,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { courseService, categoryService } from '../../services';
 import { toast } from 'react-toastify';
 import { userService } from '../../services';
-import axios from 'axios';
 import uploadToS3 from '../../services/uploadToS3';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 const { Dragger } = Upload;
@@ -43,6 +43,8 @@ function CourseManagement() {
   const [pdfFileList, setPdfFileList] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const navigate = useNavigate();
   
   // Define react-hook-form
   const { 
@@ -87,7 +89,7 @@ function CourseManagement() {
   const fetchCourses = async () => {
     try {
       setError(null);
-      const response = await courseService.getAllCourses();
+      const response = await courseService.getCourseUserCreate();
       setCourses(response.data);
       return response.data;
     } catch (error) {
@@ -373,6 +375,10 @@ function CourseManagement() {
     }
   };
 
+  const goToDetailsCourse = (course) => {
+    navigate(`/admin/lecture/${course.id}/details`);
+  }
+
   // Display loading state
   if (loading && courses?.length === 0) {
     return (
@@ -532,6 +538,20 @@ function CourseManagement() {
                         >
                           <TrashIcon className="w-4 h-4 mr-1" />
                           Xóa
+                        </button>
+                        <button
+                          onClick={() => handleUploadDocument(course)}
+                          className="text-green-600 hover:text-green-900 flex items-center"
+                        >
+                          <PlusIcon className="w-4 h-4 mr-1" />
+                          Tải tài liệu
+                        </button>
+                        <button
+                          onClick={() => goToDetailsCourse(course)}
+                          className="text-gray-600 hover:text-gray-900 flex items-center"
+                        >
+                          <DocumentTextIcon className="w-4 h-4 mr-1" />
+                          Chi tiết
                         </button>
                       </div>
                     </td>
@@ -759,5 +779,12 @@ function CourseManagement() {
     </div>
   );
 }
+
+// Add handlers for the new buttons
+const handleUploadDocument = (course) => {
+  console.log('Upload document for course:', course);
+  // Add logic for uploading documents
+};
+
 
 export default CourseManagement;

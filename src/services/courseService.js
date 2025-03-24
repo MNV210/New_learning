@@ -21,15 +21,6 @@ const courseService = {
     }
   },
 
-  // Lấy các bài giảng của một khóa học
-  getCourseLectures: async (courseId) => {
-    try {
-      const response = await apiClient.get(`/courses/${courseId}/lectures`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 
   // Tạo khóa học mới (chỉ Admin)
   createCourse: async (courseData) => {
@@ -89,7 +80,27 @@ const courseService = {
     }catch (error) {
       throw error
     }
-  }
+  },
+
+  // lấy các khóa học đã tạo của user
+  getCourseUserCreate: async () => {
+    try {
+      const response = await apiClient.post('/courses/user_create');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  //Lấy các bài học có trong khóa học bằng course_id
+  getLessonByCourseId: async (course_id) => {
+    try {
+      const response = await apiClient.get(`lessons/course/${course_id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default courseService; 

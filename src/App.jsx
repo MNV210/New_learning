@@ -26,6 +26,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import LectureDetails from "./components/lectures/LectureDetails";
 import LessonView from "./components/lectures/LessonView";
+import LessonManagement from "./pages/admin/LessonManagement";
 
 
 const router = createBrowserRouter([
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
             {
                 path: "notifications",
                 element: <NotificationsPage />,
+            },
+            {
+                path:"lecture/:id/details",
+                element: <LessonManagement/>
             }
         ],
     },
