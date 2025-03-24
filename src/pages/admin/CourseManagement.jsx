@@ -42,6 +42,7 @@ function CourseManagement() {
   const [fileList, setFileList] = useState([]);
   const [pdfFileList, setPdfFileList] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   
   // Define react-hook-form
   const { 
@@ -128,18 +129,19 @@ function CourseManagement() {
     setSearchTerm(e.target.value);
   };
 
-  // Filter courses based on search term
+  // Filter courses based on search term and selected category
   const filteredCourses = Array.isArray(courses) ? courses.filter(course => {
     const title = course?.title || '';
     const description = course?.description || '';
     const teacher = course?.teacher?.name || '';
     const searchLower = searchTerm.toLowerCase();
-    
-    return (
+    const matchesSearch = (
       title.toLowerCase().includes(searchLower) || 
       description.toLowerCase().includes(searchLower) ||
       teacher.toLowerCase().includes(searchLower)
     );
+    const matchesCategory = selectedCategory ? course.category_id === selectedCategory : true;
+    return matchesSearch && matchesCategory;
   }) : [];
 
   // Handle opening delete course modal
@@ -413,6 +415,20 @@ function CourseManagement() {
             />
             <MagnifyingGlassIcon className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
           </div>
+          <div>
+            <Select
+              placeholder="Lọc theo danh mục"
+              style={{ width: 200 }}
+              allowClear
+              onChange={(value) => setSelectedCategory(value)}
+            >
+              {categories.map(category => (
+                <Option key={category.id} value={category.id}>
+                  {category.name}
+                </Option>
+              ))}
+            </Select>
+          </div>
         </div>
       </div>
       
@@ -672,44 +688,46 @@ function CourseManagement() {
             </Dragger>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tài liệu PDF <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="pdfFile"
-              control={control}
-              rules={{ 
-                required: editingCourse && editingCourse.pdfFileUrl ? false : 'Vui lòng tải lên tệp PDF'
-              }}
-              render={({ field }) => (
-                <Dragger 
-                  {...pdfUploadProps} 
-                  maxCount={1} 
-                  listType="text"
-                  status={errors.pdfFile ? 'error' : ''}
-                  onChange={(info) => {
-                    if (info.fileList.length > 0) {
-                      setValue('pdfFile', info.fileList[0].originFileObj);
-                    } else {
-                      setValue('pdfFile', null);
-                    }
-                  }}
-                >
-                  <p className="ant-upload-drag-icon">
-                    <FilePdfOutlined style={{ fontSize: '36px', color: '#ff4d4f' }} />
-                  </p>
-                  <p className="ant-upload-text">Nhấp hoặc kéo tệp PDF vào khu vực này để tải lên</p>
-                  <p className="ant-upload-hint">
-                    Chỉ hỗ trợ tệp PDF dưới 10MB
-                  </p>
-                </Dragger>
+          {!editingCourse && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tài liệu PDF <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="pdfFile"
+                control={control}
+                rules={{
+                  required: 'Vui lòng tải lên tệp PDF'
+                }}
+                render={({ field }) => (
+                  <Dragger 
+                    {...pdfUploadProps} 
+                    maxCount={1} 
+                    listType="text"
+                    status={errors.pdfFile ? 'error' : ''}
+                    onChange={(info) => {
+                      if (info.fileList.length > 0) {
+                        setValue('pdfFile', info.fileList[0].originFileObj);
+                      } else {
+                        setValue('pdfFile', null);
+                      }
+                    }}
+                  >
+                    <p className="ant-upload-drag-icon">
+                      <FilePdfOutlined style={{ fontSize: '36px', color: '#ff4d4f' }} />
+                    </p>
+                    <p className="ant-upload-text">Nhấp hoặc kéo tệp PDF vào khu vực này để tải lên</p>
+                    <p className="ant-upload-hint">
+                      Chỉ hỗ trợ tệp PDF dưới 10MB
+                    </p>
+                  </Dragger>
+                )}
+              />
+              {errors.pdfFile && (
+                <p className="mt-1 text-sm text-red-600">{errors.pdfFile.message}</p>
               )}
-            />
-            {errors.pdfFile && (
-              <p className="mt-1 text-sm text-red-600">{errors.pdfFile.message}</p>
-            )}
-          </div>
+            </div>
+          )}
           
           <div className="pt-4 border-t border-gray-200 flex justify-end space-x-3">
             <Button onClick={() => setIsModalOpen(false)} disabled={submitLoading}>
