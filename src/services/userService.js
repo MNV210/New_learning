@@ -93,6 +93,14 @@ const userService = {
       throw error;
     }
   },
+  getInstructors: async () => {
+    try {
+      const response = await apiClient.get('/not_student');
+      return response.data;
+    } catch (error) {
+      throw error;    
+    }
+  },
 
   // Cập nhật vai trò người dùng (chỉ Admin)
   // updateUserRole: async (userId, roleData) => {
