@@ -376,7 +376,7 @@ function CourseManagement() {
   };
 
   const goToDetailsCourse = (course) => {
-    navigate(`/admin/lecture/${course.id}/details`);
+    navigate(`/admin/course/${course.id}`);
   }
 
   // Display loading state

@@ -321,8 +321,8 @@ const LessonManagement = () => {
         >
             <div style={{ padding: '0 0 24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <Title level={2} style={{ margin: 0 }}>
-                        Khóa học #{params.id}: Quản lý bài học
+                    <Title level={4} style={{ margin: 0 }}>
+                        Danh sách bài học
                     </Title>
                     <Button 
                         type="primary" 

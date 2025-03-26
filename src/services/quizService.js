@@ -4,7 +4,7 @@ const quizService = {
   // Lấy tất cả bài kiểm tra trong một khóa học
   getCourseQuizzes: async (courseId) => {
     try {
-      const response = await apiClient.get(`/courses/${courseId}/quizzes`);
+      const response = await apiClient.get(`/quizzes?course_id=${courseId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -32,9 +32,9 @@ const quizService = {
   },
 
   // Tạo bài kiểm tra mới (chỉ Admin)
-  createQuiz: async (courseId, quizData) => {
+  createQuiz: async (quizData) => {
     try {
-      const response = await apiClient.post(`/courses/${courseId}/quizzes`, quizData);
+      const response = await apiClient.post(`/quizzes`, quizData);
       return response.data;
     } catch (error) {
       throw error;
@@ -42,9 +42,17 @@ const quizService = {
   },
 
   // Cập nhật bài kiểm tra (chỉ Admin)
-  updateQuiz: async (courseId, quizId, quizData) => {
+  updateQuiz: async (quizId, quizData) => {
     try {
-      const response = await apiClient.put(`/courses/${courseId}/quizzes/${quizId}`, quizData);
+      const response = await apiClient.put(`/quizzes/${quizId}`, quizData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  deleteQuiz: async(quizId) => {
+    try {
+      const response = await apiClient.delete(`/quizzes/${quizId}`);
       return response.data;
     } catch (error) {
       throw error;

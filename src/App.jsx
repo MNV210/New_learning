@@ -14,6 +14,7 @@ import CourseManagement from "./pages/admin/CourseManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import NotificationsPage from "./pages/admin/NotificationsPage";
+import CourseDetail from "./pages/admin/CourseDetail";
 
 // Import User Dashboard Components
 import UserDashboard from "./pages/user/Dashboard";
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
             {
                 path:"lecture/:id/details",
                 element: <LessonManagement/>
+            },
+            {
+                path:"course/:id",
+                element: <CourseDetail/>
             }
         ],
     },
