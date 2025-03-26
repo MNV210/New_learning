@@ -6,30 +6,34 @@ import {
 } from 'antd';
 import { 
   SearchOutlined, BookOutlined, EditOutlined, DeleteOutlined, 
-  PlusOutlined, UploadOutlined, VideoCameraOutlined, FileOutlined 
+  PlusOutlined, UploadOutlined, VideoCameraOutlined, FileOutlined,
+  FilePdfOutlined
 } from '@ant-design/icons';
 
 import { courseService } from '../../services';
 import '../../assets/LessonManagement.css'
 import lessonService from '../../services/lessonService';
+import uploadToS3 from '../../services/uploadToS3';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
 const { TextArea } = Input;
+const { Dragger } = Upload;
+// const [pdfFileList, setPdfFileList] = useState([]);
 
 
 const LessonManagement = () => {
-    const { courseId } = useParams();
     const [lessons, setLessons] = useState([]);
     const [filteredLessons, setFilteredLessons] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingLesson, setEditingLesson] = useState(null);
     const [form] = Form.useForm();
-
-    const params = useParams();
+    const params = useParams()
+    
 
     const getLessonByCourseId = async() => {
         const response = await courseService.getLessonByCourseId(params.id);
@@ -42,10 +46,22 @@ const LessonManagement = () => {
         }, 1000);
     }
 
+    const createLesson = async(data) => {
+        try {
+            await lessonService.createLesson(data);
+            await getLessonByCourseId();
+            message.success('Tạo mới bài học thành công!');
+            return true;
+        } catch (error) {
+            message.error('Tạo mới bài học thất bại: ' + (error.message || 'Đã xảy ra lỗi'));
+            return false;
+        }
+    }
+
     // lấy danh sách khóa học theo course_id
-    useEffect(() => async() =>{
-        getLessonByCourseId()
-    }, [courseId]);
+    useEffect(() => {
+        getLessonByCourseId();
+    }, [params.id]);
 
     // Xử lý tìm kiếm
     const handleSearch = (value) => {
@@ -88,35 +104,102 @@ const LessonManagement = () => {
     };
 
     // Xử lý submit form
-    const handleSubmit = () => {
-        form.validateFields()
-            .then(values => {
-                if (editingLesson) {
-                    // Cập nhật bài học
-                    const updatedLessons = lessons.map(lesson => 
-                        lesson.id === editingLesson.id ? { ...lesson, ...values } : lesson
-                    );
-                    setLessons(updatedLessons);
-                    setFilteredLessons(updatedLessons);
-                    message.success('Cập nhật bài học thành công!');
-                } else {
-                    // Tạo bài học mới
-                    const newLesson = {
-                        id: lessons.length + 1,
-                        ...values,
-                        status: 'draft'
+    const handleSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            setSubmitLoading(true);
+            
+            if (editingLesson) {
+                // Cập nhật bài học
+                try {
+                    let fileType = "";
+                    let file = null;
+                    
+                    if (values.file && values.file.fileList && values.file.fileList.length > 0) {
+                        file = values.file.fileList[0].originFileObj;
+                        const isPDF = file.type === 'application/pdf';
+                        const isVideo = file.type.startsWith('video/');
+                        
+                        if (!isPDF && !isVideo) {
+                            message.error('Chỉ chấp nhận file PDF hoặc video!');
+                            setSubmitLoading(false);
+                            return;
+                        }
+                        
+                        // Xác định loại file
+                        fileType = isPDF ? "file" : "video";
+                    }
+                    
+                    const updateData = {
+                        id: editingLesson.id,
+                        title: values.title,
+                        content: values.content,
+                        type: fileType || editingLesson.type
                     };
-                    const newLessons = [...lessons, newLesson];
-                    setLessons(newLessons);
-                    setFilteredLessons(newLessons);
-                    message.success('Tạo bài học mới thành công!');
+                    
+                    if (file) {
+                        const file_url = await uploadToS3.uploadVideo({file: file});
+                        updateData.file_url = file_url.data.url;
+                    }
+                    
+                    const response = await lessonService.updateLesson(updateData);
+                    if (response && response.status === 'success') {
+                        await getLessonByCourseId();
+                        message.success('Cập nhật bài học thành công!');
+                        setIsModalVisible(false);
+                        form.resetFields();
+                    } else {
+                        message.error('Cập nhật bài học thất bại');
+                    }
+                } catch (error) {
+                    message.error('Lỗi khi cập nhật bài học: ' + (error.message || 'Đã xảy ra lỗi'));
+                } finally {
+                    setSubmitLoading(false);
                 }
-                setIsModalVisible(false);
-                form.resetFields();
-            })
-            .catch(info => {
-                console.log('Lỗi khi xác thực:', info);
-            });
+            } else {
+                // Tạo bài học mới
+                if(values.file && values.file.fileList && values.file.fileList.length > 0) {
+                    try {
+                        const file = values.file.fileList[0].originFileObj;
+                        const isPDF = file.type === 'application/pdf';
+                        const isVideo = file.type.startsWith('video/');
+                        
+                        if (!isPDF && !isVideo) {
+                            message.error('Chỉ chấp nhận file PDF hoặc video!');
+                            setSubmitLoading(false);
+                            return;
+                        }
+                        
+                        // Xác định loại file
+                        const fileType = isPDF ? "file" : "video";
+                        
+                        const file_url = await uploadToS3.uploadVideo({file: file});
+                        const dataCreate = {
+                            title: values.title,
+                            content: values.content,
+                            file_url: file_url.data.url,
+                            course_id: params.id,
+                            type: fileType
+                        };
+                        const success = await createLesson(dataCreate);
+                        if (success) {
+                            setIsModalVisible(false);
+                            form.resetFields();
+                        }
+                    } catch (error) {
+                        message.error('Lỗi khi tải file lên: ' + (error.message || 'Đã xảy ra lỗi'));
+                    } finally {
+                        setSubmitLoading(false);
+                    }
+                } else {
+                    message.error('Vui lòng tải lên tệp PDF hoặc video!');
+                    setSubmitLoading(false);
+                }
+            }
+        } catch (info) {
+            console.log('Lỗi khi xác thực:', info);
+            setSubmitLoading(false);
+        }
     };
 
     // Xử lý xóa bài học
@@ -239,7 +322,7 @@ const LessonManagement = () => {
             <div style={{ padding: '0 0 24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <Title level={2} style={{ margin: 0 }}>
-                        Khóa học #{courseId}: Quản lý bài học
+                        Khóa học #{params.id}: Quản lý bài học
                     </Title>
                     <Button 
                         type="primary" 
@@ -285,13 +368,18 @@ const LessonManagement = () => {
             {/* Modal tạo/cập nhật bài học */}
             <Modal
                 title={editingLesson ? "Cập nhật bài học" : "Thêm bài học mới"}
-                visible={isModalVisible}
+                open={isModalVisible}
                 onCancel={handleCancel}
                 footer={[
-                    <Button key="back" onClick={handleCancel}>
+                    <Button key="back" onClick={handleCancel} disabled={submitLoading}>
                         Hủy
                     </Button>,
-                    <Button key="submit" type="primary" onClick={handleSubmit}>
+                    <Button 
+                        key="submit" 
+                        type="primary" 
+                        onClick={handleSubmit} 
+                        loading={submitLoading}
+                    >
                         {editingLesson ? "Cập nhật" : "Tạo mới"}
                     </Button>,
                 ]}
@@ -322,35 +410,27 @@ const LessonManagement = () => {
                         />
                     </Form.Item>
 
-                    {/* <Form.Item
-                        name="type"
-                        label="Loại"
-                        rules={[{ required: true, message: 'Vui lòng chọn loại!' }]}
-                    >
-                        <Select placeholder="Chọn loại tài liệu">
-                            <Option value="video">Video</Option>
-                            <Option value="file">Tài liệu</Option>
-                        </Select>
-                    </Form.Item> */}
-
                     <Form.Item
-                        name="file_url"
-                        label="URL tệp"
-                        rules={[{ required: true, message: 'Vui lòng nhập URL tệp hoặc tải lên tệp mới!' }]}
+                        name="file"
+                        label="Tải lên tệp (PDF hoặc Video)"
+                        rules={[{ required: true, message: 'Vui lòng tải lên tệp PDF hoặc video!' }]}
                     >
-                        <Input placeholder="Nhập URL của tệp" />
-                    </Form.Item>
-
-                    <Form.Item label="Hoặc tải lên tệp mới">
-                        <Upload 
+                        <Upload
                             maxCount={1}
                             beforeUpload={(file) => {
-                                // Trong thực tế, bạn sẽ xử lý việc tải lên tại đây
-                                message.info(`Tệp '${file.name}' sẽ được tải lên sau khi lưu form.`);
+                                const isPDF = file.type === 'application/pdf';
+                                const isVideo = file.type.startsWith('video/');
+                                if (!isPDF && !isVideo) {
+                                    message.error('Chỉ chấp nhận file PDF hoặc video!');
+                                }
                                 return false;
                             }}
+                            accept=".pdf,.mp4,.webm,.avi"
                         >
                             <Button icon={<UploadOutlined />}>Chọn tệp</Button>
+                            <Text type="secondary" style={{ marginLeft: 10 }}>
+                                Hỗ trợ tệp PDF hoặc video (MP4, Webm, AVI) dưới 100MB
+                            </Text>
                         </Upload>
                     </Form.Item>
 
