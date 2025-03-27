@@ -28,7 +28,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LectureDetails from "./components/lectures/LectureDetails";
 import LessonView from "./components/lectures/LessonView";
 import LessonManagement from "./pages/admin/LessonManagement";
-
+import QuestionManagement from "./pages/admin/QuestionManagement";
 
 const router = createBrowserRouter([
     {
@@ -78,6 +78,10 @@ const router = createBrowserRouter([
             {
                 path:"course/:id",
                 element: <CourseDetail/>
+            },
+            {
+                path:"quiz/:quizId/questions",
+                element: <QuestionManagement/>
             }
         ],
     },

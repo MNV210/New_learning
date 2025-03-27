@@ -10,8 +10,8 @@ import {
 } from '@ant-design/icons';
 
 import { courseService, quizService } from '../../services';
-import lessonService from '../../services/lessonService';
-
+// import lessonService from '../../services/lessonService';
+import { useNavigate } from 'react-router-dom';
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
@@ -27,6 +27,7 @@ const ExamManagement = () => {
     const [editingExam, setEditingExam] = useState(null);
     const [form] = Form.useForm();
     const params = useParams();
+    const navigate = useNavigate();
 
     const getExamsByCourseId = async () => {
         try {
@@ -192,9 +193,10 @@ const ExamManagement = () => {
 
     // Handler để chuyển đến trang quản lý câu hỏi
     const handleManageQuestions = (examId) => {
-        message.info(`Chuyển đến quản lý câu hỏi cho bài kiểm tra ID: ${examId}`);
+
+        // message.info(`Chuyển đến quản lý câu hỏi cho bài kiểm tra ID: ${examId}`);
         // Sau này sẽ thay bằng navigation thực tế
-        // navigate(`/admin/exam/${examId}/questions`);
+        navigate(`/admin/quiz/${examId}/questions`);
     };
 
     const columns = [
