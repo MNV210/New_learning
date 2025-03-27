@@ -19,8 +19,7 @@ const LectureList = ({ lectures, isDark, onLectureClick, onFilterChange }) => {
     try {
       setLoading(true);
       const response = await categoryService.getAllCategories();
-      const categoriesData = response.data || response.categories || [];
-      setCategories(categoriesData.filter(cat => cat.status === 'active'));
+      setCategories(response);
     } catch (error) {
       console.error('Error fetching categories:', error);
     } finally {
@@ -58,7 +57,7 @@ const LectureList = ({ lectures, isDark, onLectureClick, onFilterChange }) => {
 
   // Filter lectures based on category and search term
   const filteredLectures = lectures?.filter(lecture => {
-    const matchesCategory = !selectedCategory || lecture.categoryId === selectedCategory.id;
+    const matchesCategory = !selectedCategory || lecture.category_id === selectedCategory.id;
     const matchesSearch = !searchTerm || 
       lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lecture.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -136,21 +135,6 @@ const LectureList = ({ lectures, isDark, onLectureClick, onFilterChange }) => {
                     Xóa lọc <XMarkIcon className="w-4 h-4 ml-1" />
                   </button>
                 )}
-                <button 
-                  onClick={() => {
-                    fetchCategories();
-                    if (onFilterChange) {
-                      onFilterChange({
-                        category: selectedCategory,
-                        searchTerm
-                      });
-                    }
-                  }}
-                  className="text-sm text-blue-500 hover:underline flex items-center"
-                  disabled={loading}
-                >
-                  {loading ? 'Đang tải...' : 'Làm mới'}
-                </button>
               </div>
             </div>
             
@@ -205,11 +189,11 @@ const LectureList = ({ lectures, isDark, onLectureClick, onFilterChange }) => {
                   alt={lecture.title} 
                   className="w-full h-full object-cover"
                 />
-                {lecture.categoryName && (
+                {lecture.category?.name && (
                   <div className={`absolute top-2 left-2 px-2 py-1 text-xs rounded-full ${
                     isDark ? "bg-blue-600 text-white" : "bg-blue-100 text-blue-800"
                   }`}>
-                    {lecture.categoryName}
+                    {lecture.category?.name}
                   </div>
                 )}
               </div>

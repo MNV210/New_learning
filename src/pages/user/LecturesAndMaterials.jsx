@@ -15,7 +15,9 @@ const LecturesAndMaterials = () => {
   
   // States for lectures and UI
   const [lectures, setLectures] = useState([]);
+  const [filteredLectures, setFilteredLectures] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLecture, setSelectedLecture] = useState(null);
@@ -30,29 +32,44 @@ const LecturesAndMaterials = () => {
         setLoading(true);
         
         // Fetch categories first
-        const categoriesData = await categoryService.getAllCategories();
-        const categories = categoriesData.data || categoriesData.categories || [];
-        setCategories(categories);
+        const categoriesResponse = await categoryService.getAllCategories();
+        const categoriesData = categoriesResponse?.data || [];
+        setCategories(categoriesData);
         
         // Then fetch courses
-        const coursesData = await courseService.getAllCourses();
-        const courses = coursesData.data || coursesData.courses || [];
+        const coursesResponse = await courseService.getAllCourses();
+        const coursesData = coursesResponse?.data || [];
         
         // Enrich courses with category names
-        const enrichedCourses = courses.map(course => {
-          const category = categories.find(cat => cat.id === course.categoryId);
+        const enrichedCourses = coursesData.map(course => {
+          if (!course) return null;
+          const category = categoriesData.find(cat => 
+            cat?.id && course?.category_id && 
+            cat.id.toString() === course.category_id.toString()
+          );
+          
           return {
             ...course,
-            categoryName: category ? category.name : 'Không có danh mục'
+            title: course.title || 'Chưa có tiêu đề',
+            instructor: course.instructor || 'Chưa có giảng viên',
+            description: course.description || 'Chưa có mô tả',
+            duration: course.duration || '0h',
+            level: course.level || 'Cơ bản',
+            thumbnail: course.thumbnail || 'https://placehold.co/600x400',
+            categoryName: category?.name || 'Không có danh mục',
+            category_id: course.category_id || null
           };
-        });
+        }).filter(Boolean); // Remove null entries
+
+        console.log(enrichedCourses)
         
         setLectures(enrichedCourses);
+        setFilteredLectures(enrichedCourses);
         setError(null);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to load courses. Please try again later.');
-        toast.error('Error loading courses. Using sample data instead.');
+        toast.error('Error loading courses');
       } finally {
         setLoading(false);
       }
@@ -61,166 +78,44 @@ const LecturesAndMaterials = () => {
     fetchData();
   }, []);
 
-  // Hàm để lấy chi tiết bài giảng từ API
-  const fetchLectureDetails = async (courseId) => {
-    try {
-      setLoading(true);
-      const courseDetails = await courseService.getCourseById(courseId);
-      setSelectedLecture(courseDetails);
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching lecture details:', error);
-      toast.error('Failed to load lecture details.');
-      // Sử dụng dữ liệu mẫu khi API gặp lỗi
-      const sampleLecture = sampleLectures.find(lecture => lecture.id === courseId);
-      setSelectedLecture(sampleLecture || null);
-    } finally {
-      setLoading(false);
+  // Filter lectures when category changes
+  useEffect(() => {
+    if (!Array.isArray(lectures)) return;
+    
+    if (selectedCategory === 'all') {
+      setFilteredLectures(lectures);
+    } else {
+      const filtered = lectures.filter(lecture => 
+        lecture?.category_id && selectedCategory &&
+        lecture.category_id.toString() === selectedCategory.toString()
+      );
+      setFilteredLectures(filtered);
     }
-  };
+  }, [selectedCategory, lectures]);
 
-  // Hàm để lấy tài liệu bài giảng từ API
-  // const fetchLectureMaterials = async (courseId, lectureId) => {
-  //   try {
-  //     setLoading(true);
-  //     const materials = await lectureService.getLectureMaterials(courseId, lectureId);
-  //     // Cập nhật lesson với materials
-  //     setSelectedLesson({ ...selectedLesson, materials });
-  //     setError(null);
-  //   } catch (error) {
-  //     console.error('Error fetching lecture materials:', error);
-  //     toast.error('Failed to load lecture materials.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // Hàm để đánh dấu bài giảng đã hoàn thành
-  // const markLectureAsCompleted = async (courseId, lectureId) => {
-  //   try {
-  //     await lectureService.markLectureAsCompleted(courseId, lectureId);
-  //     toast.success('Lesson marked as completed');
-      
-  //     // Cập nhật trạng thái local
-  //     if (selectedLecture) {
-  //       const updatedModules = selectedLecture.modules.map(module => {
-  //         const updatedLessons = module.lessons.map(lesson => 
-  //           lesson.id === lectureId ? { ...lesson, watched: true } : lesson
-  //         );
-  //         return { ...module, lessons: updatedLessons };
-  //       });
-        
-  //       setSelectedLecture({ ...selectedLecture, modules: updatedModules });
-  //     }
-  //   } catch (error) {
-  //     console.error('Error marking lecture as completed:', error);
-  //     toast.error('Failed to mark lesson as completed');
-  //   }
-  // };
-
-  // Hàm để đăng ký khóa học
-  // const handleRegister = async (lectureId) => {
-  //   try {
-  //     await courseService.enrollCourse(lectureId, {});
-  //     toast.success('Successfully enrolled in the course');
-      
-  //     // Cập nhật trạng thái local
-  //     setLectures(lectures?.map(lecture => 
-  //       lecture.id === lectureId ? { ...lecture, isRegistered: true } : lecture
-  //     ));
-      
-  //     if (selectedLecture && selectedLecture.id === lectureId) {
-  //       setSelectedLecture({ ...selectedLecture, isRegistered: true });
-  //     }
-  //   } catch (error) {
-  //     console.error('Error enrolling in course:', error);
-  //     toast.error('Failed to enroll in the course');
-  //   }
-  // };
+ 
+ 
 
   const handleLectureClick = (lecture) => {
-    navigate(`/user/lecture/${lecture.id}`)
-    // fetchLectureDetails(lecture.id);
-    // setCurrentView("details");
+    if (lecture?.id) {
+      navigate(`/user/lecture/${lecture.id}`);
+    }
   };
 
-  const handleGoToLearn = () => {
-    setCurrentView("learn");
-  };
-
-  const handleBackToList = () => {
-    setCurrentView("list");
-    setSelectedLecture(null);
-  };
-
-  const handleBackToDetails = () => {
-    setCurrentView("details");
-    setSelectedLesson(null);
-  };
-
-  // const handleLessonClick = (lesson) => {
-  //   setSelectedLesson(lesson);
-  //   // Nếu đã chọn một bài giảng, lấy tài liệu của nó
-  //   if (selectedLecture && lesson) {
-  //     fetchLectureMaterials(selectedLecture.id, lesson.id);
-  //   }
-  //   setCurrentView("learn");
-  // };
 
   // Render loading state
-    if (loading) {
-      return <LoadingSkeleton />;
-    }
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   // Render error state
-  if (error && lectures.length === 0) {
+  if (error && (!lectures || lectures.length === 0)) {
     return (
       <div className={`p-6 ${isDark ? 'bg-gray-800 text-white' : 'bg-white'}`}>
         <h1 className="text-2xl font-bold mb-6">Bài Giảng & Tài Liệu</h1>
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={() => {
-                const fetchData = async () => {
-                  try {
-                    setLoading(true);
-                    
-                    // Fetch categories first
-                    const categoriesData = await categoryService.getAllCategories();
-                    const categories = categoriesData.data || categoriesData.categories || [];
-                    setCategories(categories);
-                    
-                    // Then fetch courses
-                    const coursesData = await courseService.getAllCourses();
-                    const courses = coursesData.data || coursesData.courses || [];
-                    
-                    // Enrich courses with category names
-                    const enrichedCourses = courses.map(course => {
-                      const category = categories.find(cat => cat.id === course.categoryId);
-                      return {
-                        ...course,
-                        categoryName: category ? category.name : 'Không có danh mục'
-                      };
-                    });
-                    
-                    setLectures(enrichedCourses);
-                    setError(null);
-                  } catch (error) {
-                    console.error('Error fetching data:', error);
-                    setError('Failed to load courses. Please try again later.');
-                    toast.error('Error loading courses. Using sample data instead.');
-                  } finally {
-                    setLoading(false);
-                  }
-                };
-                
-                fetchData();
-              }}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Thử lại
-            </button>
           </div>
         </div>
       </div>
@@ -230,32 +125,13 @@ const LecturesAndMaterials = () => {
   // Render the appropriate view based on the currentView
   return (
     <div className="container mx-auto px-4 py-8">
-      {currentView === 'list' && (
+      <>
         <LectureList 
-          lectures={lectures} 
+          lectures={filteredLectures || []} 
           isDark={isDark} 
           onLectureClick={handleLectureClick}
         />
-      )}
-      
-      {/* {currentView === 'details' && (
-        <LectureDetails 
-          lecture={selectedLecture} 
-          isDark={isDark} 
-          onBackClick={handleBackToList} 
-          // onRegister={handleRegister} 
-          onGoToLearn={handleGoToLearn}
-        />
-      )} */}
-      
-      {/* {currentView === 'learn' && (
-        <LessonView 
-          lecture={selectedLecture} 
-          isDark={isDark} 
-          onBackClick={handleBackToDetails}
-          onLessonClick={handleLessonClick}
-        />
-      )} */}
+      </>
     </div>
   );
 };
