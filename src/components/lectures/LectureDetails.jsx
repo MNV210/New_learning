@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import "./LectureDetails.css"; // Import the CSS file
 import LoadingSkeleton from "../LoadingSkeleton";
 import userRegisterCourse from "../../services/userRegisterService";
+import { message } from "antd";
 
 const courseDetails = () => {
   const { theme } = useTheme();
@@ -52,8 +53,10 @@ const courseDetails = () => {
   const onRegisterCourse = async(courseId) => {
     const response = await userRegisterCourse.registerCourse({
       course_id:courseId,
+    }).then(()=>{
+      message.success('Đăng ký khóa học thành công')
+      setIsRegistered(true)
     })
-    console.log(response.data)
   }
 
   if (!course || Object.keys(course).length === 0) return null;
