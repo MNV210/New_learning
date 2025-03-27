@@ -41,27 +41,43 @@ const LecturesAndMaterials = () => {
         const coursesData = coursesResponse?.data || [];
         
         // Enrich courses with category names
-        const enrichedCourses = coursesData.map(course => {
-          if (!course) return null;
-          const category = categoriesData.find(cat => 
-            cat?.id && course?.category_id && 
-            cat.id.toString() === course.category_id.toString()
-          );
-          
-          return {
-            ...course,
-            title: course.title || 'Chưa có tiêu đề',
-            instructor: course.instructor || 'Chưa có giảng viên',
-            description: course.description || 'Chưa có mô tả',
-            duration: course.duration || '0h',
-            level: course.level || 'Cơ bản',
-            thumbnail: course.thumbnail || 'https://placehold.co/600x400',
-            categoryName: category?.name || 'Không có danh mục',
-            category_id: course.category_id || null
-          };
-        }).filter(Boolean); // Remove null entries
+        const enrichedCourses = coursesData
+          .map(course => {
+            if (!course) return null;
+            
+            // Kiểm tra xem khóa học có bài học không
+            const hasLessons = Array.isArray(course.lessons) && course.lessons.length > 0;
+            const hasModulesWithLessons = Array.isArray(course.modules) && 
+              course.modules.some(module => Array.isArray(module.lessons) && module.lessons.length > 0);
+            
+            // Chỉ tiếp tục nếu có ít nhất 1 bài học
+            if (!hasLessons && !hasModulesWithLessons) return null;
 
-        console.log(enrichedCourses)
+            const category = categoriesData.find(cat => 
+              cat?.id && course?.category_id && 
+              cat.id.toString() === course.category_id.toString()
+            );
+            
+            return {
+              ...course,
+              title: course.title || 'Chưa có tiêu đề',
+              instructor: course.instructor || 'Chưa có giảng viên',
+              description: course.description || 'Chưa có mô tả',
+              duration: course.duration || '0h',
+              level: course.level || 'Cơ bản',
+              thumbnail: course.thumbnail || 'https://placehold.co/600x400',
+              categoryName: category?.name || 'Không có danh mục',
+              category_id: course.category_id || null,
+              totalLessons: hasLessons 
+                ? course.lessons.length 
+                : hasModulesWithLessons 
+                  ? course.modules.reduce((total, module) => total + (module.lessons?.length || 0), 0)
+                  : 0
+            };
+          })
+          .filter(Boolean); // Remove null entries
+        
+        console.log('Courses with lessons:', enrichedCourses);
         
         setLectures(enrichedCourses);
         setFilteredLectures(enrichedCourses);
