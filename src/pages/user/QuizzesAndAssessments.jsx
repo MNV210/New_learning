@@ -1,489 +1,247 @@
-import React, { useState } from "react";
-import { useTheme } from "../../context/ThemeContext";
+import React, { useState, useEffect } from 'react';
+import courseService from '../../services/courseService';
+import quizService from '../../services/quizService';
 
 const QuizzesAndAssessments = () => {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const [quizzes, setQuizzes] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
+  const [completedQuizzes, setCompletedQuizzes] = useState(0);
 
-  // Sample data - in a real app, this would come from API/backend
-  const quizzes = [
-    {
-      id: 1,
-      title: "React Fundamentals Quiz",
-      course: "Introduction to React",
-      questions: 10,
-      timeLimit: 20,
-      status: "available",
-      description: "Test your knowledge of React basics including components, props, and state management."
-    },
-    {
-      id: 2,
-      title: "JavaScript ES6 Assessment",
-      course: "Advanced JavaScript",
-      questions: 15,
-      timeLimit: 30,
-      status: "available",
-      description: "Comprehensive assessment covering ES6 features like arrow functions, destructuring, and modules."
-    },
-    {
-      id: 3,
-      title: "React Hooks Challenge",
-      course: "Introduction to React",
-      questions: 8,
-      timeLimit: 15,
-      status: "completed",
-      score: 85,
-      completedDate: "May 10, 2023",
-      description: "Test your understanding of React Hooks including useState, useEffect, useContext, and custom hooks."
-    },
-    {
-      id: 4,
-      title: "Web Design Principles",
-      course: "Web Design Fundamentals",
-      questions: 12,
-      timeLimit: 25,
-      status: "available",
-      description: "Assessment covering key web design principles, color theory, typography, and layout techniques."
-    }
-  ];
-
-  // Example quiz with questions
-  const sampleQuiz = {
-    id: 1,
-    title: "React Fundamentals Quiz",
-    course: "Introduction to React",
-    timeLimit: 20,
-    questions: [
-      {
-        id: 1,
-        question: "What is JSX in React?",
-        options: [
-          "A JavaScript library for building user interfaces",
-          "A syntax extension for JavaScript that looks similar to HTML",
-          "A JavaScript compiler",
-          "A React-specific HTTP client"
-        ],
-        correctAnswer: 1
-      },
-      {
-        id: 2,
-        question: "Which of the following is used to pass data from parent to child components in React?",
-        options: [
-          "State",
-          "Props",
-          "Context",
-          "Refs"
-        ],
-        correctAnswer: 1
-      },
-      {
-        id: 3,
-        question: "What hook would you use to perform side effects in a functional component?",
-        options: [
-          "useState",
-          "useReducer",
-          "useEffect",
-          "useContext"
-        ],
-        correctAnswer: 2
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const coursesResponse = await courseService.getCourseUserRegister();
+        const courses = coursesResponse.data.course;
+        
+        const quizzesPromises = courses.map(async course => {
+          const quizResponse = await quizService.getCourseQuizzes(course.id);
+          return (quizResponse.data || []).map(quiz => ({
+            ...quiz,
+            courseName: course.title || 'Chưa đặt tên khóa học',
+            courseId: course.id,
+            // Giả lập trạng thái hoàn thành ngẫu nhiên cho demo
+            completed: Math.random() > 0.7
+          }));
+        });
+        
+        const quizzesResponses = await Promise.all(quizzesPromises);
+        const allQuizzes = quizzesResponses.flat();
+        
+        setQuizzes(allQuizzes);
+        setCompletedQuizzes(allQuizzes.filter(quiz => quiz.completed).length);
+      } catch (error) {
+        console.error('Lỗi khi tải danh sách bài kiểm tra:', error);
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
 
-  const [activeQuiz, setActiveQuiz] = useState(null);
-  const [quizStarted, setQuizStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+    fetchQuizzes();
+  }, []);
 
-  const startQuiz = (quiz) => {
-    setActiveQuiz(sampleQuiz); // In a real app, you would fetch the quiz with questions
-    setCurrentQuestion(0);
-    setUserAnswers({});
-    setTimeLeft(quiz.timeLimit * 60); // Convert minutes to seconds
-    setQuizStarted(false);
-    setQuizSubmitted(false);
-  };
-
-  const beginQuiz = () => {
-    setQuizStarted(true);
-    // In a real app, you would start a timer to count down timeLeft
-  };
-
-  const handleAnswer = (questionId, answerIndex) => {
-    setUserAnswers({
-      ...userAnswers,
-      [questionId]: answerIndex
-    });
-  };
-
-  const goToNextQuestion = () => {
-    if (currentQuestion < activeQuiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    }
-  };
-
-  const goToPreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const submitQuiz = () => {
-    setQuizSubmitted(true);
-    // In a real app, you would submit the answers to the server
-  };
-
-  // Calculate score for the submitted quiz
-  const calculateScore = () => {
-    if (!activeQuiz) return 0;
+  const filteredQuizzes = quizzes.filter(quiz => {
+    const matchesSearch = 
+      quiz.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quiz.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quiz.courseName?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    let correctCount = 0;
-    activeQuiz.questions.forEach(question => {
-      if (userAnswers[question.id] === question.correctAnswer) {
-        correctCount++;
-      }
-    });
+    if (activeTab === 'all') return matchesSearch;
+    if (activeTab === 'completed') return matchesSearch && quiz.completed;
+    if (activeTab === 'pending') return matchesSearch && !quiz.completed;
     
-    return Math.round((correctCount / activeQuiz.questions.length) * 100);
-  };
+    return matchesSearch;
+  });
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {!activeQuiz ? (
-        <div>
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">Quizzes & Assessments</h1>
-            <p className={`${isDark ? "text-gray-300" : "text-gray-600"}`}>
-              Test your knowledge and track your progress through these assessments.
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 px-4">
+        <div className="max-w-6xl ">
+          <h1 className="text-4xl font-bold mb-4">Kiểm Tra Kiến Thức</h1>
+         
+          {/* Search Bar */}
+          <div className="relative max-w-lg mx-auto">
+            <input
+              type="text"
+              placeholder="Tìm kiếm bài kiểm tra hoặc khóa học..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-12 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-700"
+            />
+            <svg 
+              className="w-6 h-6 text-gray-400 absolute left-3 top-3" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
           </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Available Quizzes</h2>
-              <div className="space-y-4">
-                {quizzes.filter(quiz => quiz.status === "available").map(quiz => (
-                  <div 
-                    key={quiz.id} 
-                    className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-5 hover:shadow-lg transition-shadow`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg mb-1">{quiz.title}</h3>
-                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"} mb-3`}>
-                          {quiz.course}
-                        </p>
-                        <p className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"} mb-4`}>
-                          {quiz.description}
-                        </p>
-                        <div className="flex items-center text-sm space-x-4">
-                          <div className="flex items-center">
-                            <span className="material-icons text-blue-500 mr-1 text-sm">quiz</span>
-                            <span>{quiz.questions} questions</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="material-icons text-red-500 mr-1 text-sm">timer</span>
-                            <span>{quiz.timeLimit} mins</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
-                      <button 
-                        onClick={() => startQuiz(quiz)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Start Quiz
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      {/* Statistics Section */}
+      <div className="max-w-6xl mx-auto px-4 -mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-indigo-600">
+            <div className="flex items-center">
+              <div className="bg-indigo-100 p-3 rounded-lg">
+                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-gray-500 text-sm font-semibold">Tổng Số Bài Kiểm Tra</h3>
+                <p className="text-2xl font-bold text-gray-800">{quizzes.length}</p>
               </div>
             </div>
+          </div>
 
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Completed Assessments</h2>
-              <div className="space-y-4">
-                {quizzes.filter(quiz => quiz.status === "completed").map(quiz => (
-                  <div 
-                    key={quiz.id} 
-                    className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-5`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg mb-1">{quiz.title}</h3>
-                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"} mb-3`}>
-                          {quiz.course}
-                        </p>
-                        <div className="flex items-center text-sm space-x-4 mb-3">
-                          <div className="flex items-center">
-                            <span className="material-icons text-blue-500 mr-1 text-sm">quiz</span>
-                            <span>{quiz.questions} questions</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="material-icons text-green-500 mr-1 text-sm">check_circle</span>
-                            <span>Completed {quiz.completedDate}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className={`flex flex-col items-center p-3 rounded-full ${
-                        quiz.score >= 80 
-                          ? "bg-green-100 text-green-800" 
-                          : quiz.score >= 60 
-                            ? "bg-yellow-100 text-yellow-800" 
-                            : "bg-red-100 text-red-800"
-                      }`}>
-                        <span className="text-2xl font-bold">{quiz.score}%</span>
-                        <span className="text-xs">Score</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
-                      <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        View Results
-                      </button>
-                    </div>
-                  </div>
-                ))}
+          <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
+            <div className="flex items-center">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-gray-500 text-sm font-semibold">Đã Hoàn Thành</h3>
+                <p className="text-2xl font-bold text-gray-800">{completedQuizzes}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-amber-500">
+            <div className="flex items-center">
+              <div className="bg-amber-100 p-3 rounded-lg">
+                <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-gray-500 text-sm font-semibold">Tỷ Lệ Hoàn Thành</h3>
+                <p className="text-2xl font-bold text-gray-800">
+                  {quizzes.length > 0 ? Math.round((completedQuizzes / quizzes.length) * 100) : 0}%
+                </p>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        <div>
-          {!quizStarted ? (
-            <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
-              <button 
-                onClick={() => setActiveQuiz(null)}
-                className={`mb-6 flex items-center px-4 py-2 rounded-lg ${
-                  isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                }`}
-              >
-                <span className="material-icons mr-1">arrow_back</span>
-                Back to Quizzes
-              </button>
-              
-              <h1 className="text-3xl font-bold mb-2">{activeQuiz.title}</h1>
-              <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-6`}>
-                Course: {activeQuiz.course}
-              </p>
-              
-              <div className={`border-2 ${isDark ? "border-gray-700" : "border-gray-200"} rounded-lg p-6 mb-6`}>
-                <h2 className="text-xl font-semibold mb-4">Quiz Instructions</h2>
-                <ul className={`list-disc list-inside space-y-2 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                  <li>This quiz contains {activeQuiz.questions.length} questions.</li>
-                  <li>You have {activeQuiz.timeLimit} minutes to complete the quiz.</li>
-                  <li>You can navigate between questions using the previous and next buttons.</li>
-                  <li>You can review your answers before final submission.</li>
-                  <li>Once submitted, you cannot retake the quiz.</li>
-                </ul>
-              </div>
-              
-              <div className="flex justify-center">
-                <button 
-                  onClick={beginQuiz}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg font-semibold"
-                >
-                  Begin Quiz
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className={`${isDark ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6`}>
-              {!quizSubmitted ? (
-                <div>
-                  <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">{activeQuiz.title}</h1>
-                    <div className={`px-4 py-2 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-100"} flex items-center`}>
-                      <span className="material-icons mr-2 text-red-500">timer</span>
-                      <span className="font-mono font-medium">{formatTime(timeLeft)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4 flex items-center">
-                    <span className={`px-3 py-1 rounded-full ${isDark ? "bg-blue-900" : "bg-blue-100"} text-blue-600`}>
-                      Question {currentQuestion + 1} of {activeQuiz.questions.length}
-                    </span>
-                  </div>
-                  
-                  <div className="mb-8">
-                    <h2 className="text-xl font-semibold mb-4">
-                      {activeQuiz.questions[currentQuestion].question}
-                    </h2>
-                    
-                    <div className="space-y-3">
-                      {activeQuiz.questions[currentQuestion].options.map((option, index) => (
-                        <div 
-                          key={index}
-                          onClick={() => handleAnswer(activeQuiz.questions[currentQuestion].id, index)}
-                          className={`p-4 rounded-lg border-2 cursor-pointer ${
-                            userAnswers[activeQuiz.questions[currentQuestion].id] === index
-                              ? isDark 
-                                ? "border-blue-500 bg-blue-900 bg-opacity-40" 
-                                : "border-blue-500 bg-blue-50"
-                              : isDark
-                                ? "border-gray-700 hover:border-gray-600"
-                                : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center ${
-                              userAnswers[activeQuiz.questions[currentQuestion].id] === index
-                                ? "bg-blue-500 text-white"
-                                : isDark
-                                  ? "border border-gray-600"
-                                  : "border border-gray-400"
-                            }`}>
-                              {userAnswers[activeQuiz.questions[currentQuestion].id] === index && (
-                                <span className="material-icons text-sm">check</span>
-                              )}
-                            </div>
-                            <span>{option}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                    <button 
-                      onClick={goToPreviousQuestion}
-                      disabled={currentQuestion === 0}
-                      className={`px-4 py-2 rounded-lg flex items-center ${
-                        currentQuestion === 0
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-gray-600 hover:bg-gray-700 text-white"
-                      }`}
-                    >
-                      <span className="material-icons mr-1">arrow_back</span>
-                      Previous
-                    </button>
-                    
-                    {currentQuestion < activeQuiz.questions.length - 1 ? (
-                      <button 
-                        onClick={goToNextQuestion}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-                      >
-                        Next
-                        <span className="material-icons ml-1">arrow_forward</span>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={submitQuiz}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                      >
-                        Submit Quiz
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="flex flex-wrap gap-2">
-                      {activeQuiz.questions.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentQuestion(index)}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            index === currentQuestion
-                              ? "bg-blue-600 text-white"
-                              : userAnswers[activeQuiz.questions[index].id] !== undefined
-                                ? isDark
-                                  ? "bg-gray-600 text-white"
-                                  : "bg-gray-200 text-gray-800"
-                                : isDark
-                                  ? "bg-gray-700 text-gray-300"
-                                  : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className={`w-32 h-32 rounded-full mx-auto mb-6 flex items-center justify-center ${
-                    calculateScore() >= 80
-                      ? "bg-green-100 text-green-600"
-                      : calculateScore() >= 60
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-red-100 text-red-600"
-                  }`}>
-                    <span className="text-4xl font-bold">{calculateScore()}%</span>
-                  </div>
-                  
-                  <h1 className="text-3xl font-bold mb-2">Quiz Completed!</h1>
-                  <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-8`}>
-                    You've successfully completed the {activeQuiz.title}.
-                  </p>
-                  
-                  <div className={`max-w-md mx-auto p-6 rounded-lg ${
-                    isDark ? "bg-gray-700" : "bg-gray-100"
-                  } mb-8`}>
-                    <h2 className="font-semibold text-xl mb-4">Results Summary</h2>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Total Questions:</span>
-                        <span className="font-medium">{activeQuiz.questions.length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Correct Answers:</span>
-                        <span className="font-medium">{
-                          activeQuiz.questions.filter(q => 
-                            userAnswers[q.id] === q.correctAnswer
-                          ).length
-                        }</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Incorrect Answers:</span>
-                        <span className="font-medium">{
-                          activeQuiz.questions.filter(q => 
-                            userAnswers[q.id] !== undefined && userAnswers[q.id] !== q.correctAnswer
-                          ).length
-                        }</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Unanswered:</span>
-                        <span className="font-medium">{
-                          activeQuiz.questions.filter(q => 
-                            userAnswers[q.id] === undefined
-                          ).length
-                        }</span>
-                      </div>
-                      <div className="pt-2 mt-2 border-t border-gray-300 flex justify-between font-bold">
-                        <span>Score:</span>
-                        <span>{calculateScore()}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-center space-x-4">
-                    <button 
-                      onClick={() => setActiveQuiz(null)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Return to Quizzes
-                    </button>
-                    <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                      Review Answers
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+      </div>
+
+      {/* Content Section */}
+      <div className="max-w-6xl mx-auto px-4 my-6">
+        {/* Filter Tabs */}
+        <div className="flex overflow-x-auto mb-8 border-b border-gray-200">
+          <button 
+            onClick={() => setActiveTab('all')}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap mr-4 ${
+              activeTab === 'all' 
+                ? 'text-indigo-600 border-b-2 border-indigo-600' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Tất Cả Bài Kiểm Tra
+          </button>
+          <button 
+            onClick={() => setActiveTab('completed')}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap mr-4 ${
+              activeTab === 'completed' 
+                ? 'text-indigo-600 border-b-2 border-indigo-600' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Đã Hoàn Thành
+          </button>
+          <button 
+            onClick={() => setActiveTab('pending')}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap mr-4 ${
+              activeTab === 'pending' 
+                ? 'text-indigo-600 border-b-2 border-indigo-600' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Chưa Hoàn Thành
+          </button>
         </div>
-      )}
+
+        {/* Quiz Cards */}
+        {filteredQuizzes.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredQuizzes.map(quiz => (
+              <div key={quiz.id} className="group">
+                <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                  {/* Course Name Banner */}
+                  <div className="bg-gray-100 px-4 py-2 flex items-center">
+                    <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <span className="ml-2 text-sm text-gray-600 truncate max-w-full">{quiz.courseName}</span>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  {/* {quiz.completed && (
+                    <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-2 py-1 m-2 rounded-lg">
+                      Hoàn thành
+                    </div>
+                  )} */}
+
+                  <div className="p-5">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2 h-14">
+                      {quiz.title}
+                    </h3>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 text-amber-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {quiz.time_limit} phút
+                      </div>
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 text-blue-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {quiz.questions?.length || 0} câu hỏi
+                      </div>
+                    </div>
+                    
+                    <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                      {quiz.completed ? 'Làm lại' : 'Bắt đầu làm bài'}
+                      <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow p-12 text-center">
+            <div className="flex flex-col items-center">
+              <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <h3 className="text-lg font-medium text-gray-700 mb-1">Không tìm thấy bài kiểm tra</h3>
+              <p className="text-gray-500">Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default QuizzesAndAssessments; 
+export default QuizzesAndAssessments;

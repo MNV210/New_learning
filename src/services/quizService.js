@@ -31,6 +31,16 @@ const quizService = {
     }
   },
 
+  // Lấy kết quả bài kiểm tra
+  getQuizResult: async (quizzesData) => {
+    try {
+      const response = await apiClient.post(`/quizz/user_results`, quizzesData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },  
+
   // Tạo bài kiểm tra mới (chỉ Admin)
   createQuiz: async (quizData) => {
     try {
