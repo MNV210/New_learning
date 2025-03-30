@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import courseService from '../../services/courseService';
 import quizService from '../../services/quizService';
+import { Link } from 'react-router-dom';
 
 const QuizzesAndAssessments = () => {
   const [quizzes, setQuizzes] = useState([]);
@@ -198,31 +199,34 @@ const QuizzesAndAssessments = () => {
                   )} */}
 
                   <div className="p-5">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2 h-14">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors duration-200">
                       {quiz.title}
                     </h3>
+                    <div className="text-gray-600 mb-4 line-clamp-2">
+                      {quiz.description || 'Không có mô tả'}
+                    </div>
                     
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <div className="flex items-center">
-                        <svg className="w-4 h-4 text-amber-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="flex items-center text-sm text-gray-500 mb-4">
+                      <div className="flex items-center mr-4">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         {quiz.time_limit} phút
                       </div>
                       <div className="flex items-center">
-                        <svg className="w-4 h-4 text-blue-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         {quiz.questions?.length || 0} câu hỏi
                       </div>
                     </div>
                     
-                    <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                    <Link 
+                      to={`/user/quiz/${quiz.courseId}/${quiz.id}/take`}
+                      className="block w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-center font-medium rounded-lg transition-colors duration-200"
+                    >
                       {quiz.completed ? 'Làm lại' : 'Bắt đầu làm bài'}
-                      <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                      </svg>
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

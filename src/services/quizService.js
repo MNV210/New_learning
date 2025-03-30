@@ -10,27 +10,15 @@ const quizService = {
       throw error;
     }
   },
-
-  // Lấy chi tiết một bài kiểm tra
-  getQuizById: async (courseId, quizId) => {
+  //Lấy thông tin của 1 bài kiêm tra
+  getInfomationQuiz: async (quizId) => {
     try {
-      const response = await apiClient.get(`/courses/${courseId}/quizzes/${quizId}`);
+      const response = await apiClient.get(`/quizzes/${quizId}`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-
-  // Lấy câu hỏi của bài kiểm tra
-  getQuizQuestions: async (courseId, quizId) => {
-    try {
-      const response = await apiClient.get(`/courses/${courseId}/quizzes/${quizId}/questions`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
   // Lấy kết quả bài kiểm tra
   getQuizResult: async (quizzesData) => {
     try {
@@ -95,25 +83,6 @@ const quizService = {
     }
   },
 
-  // Lấy kết quả bài kiểm tra của học viên
-  getQuizResults: async (courseId, quizId) => {
-    try {
-      const response = await apiClient.get(`/courses/${courseId}/quizzes/${quizId}/results`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Lấy tất cả kết quả bài kiểm tra của một học viên trong khóa học
-  getAllQuizResults: async (courseId) => {
-    try {
-      const response = await apiClient.get(`/courses/${courseId}/quizzes/results`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 
   // Lấy thống kê kết quả bài kiểm tra của tất cả học viên (chỉ Admin)
   getQuizStatistics: async (courseId, quizId) => {
@@ -128,6 +97,16 @@ const quizService = {
   getQuizResulsByUserId: async () => {
     try {
       const response = await apiClient.post(`/quizz/user_results`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Nộp kết quả bài kiểm tra
+  submitQuizResult: async (submissionData) => {
+    try {
+      const response = await apiClient.post(`/quizz/submit_result`, submissionData);
       return response.data;
     } catch (error) {
       throw error;

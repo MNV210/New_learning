@@ -21,6 +21,7 @@ import UserDashboard from "./pages/user/Dashboard";
 import UserDashboardOverview from "./pages/user/DashboardOverview";
 import LecturesAndMaterials from "./pages/user/LecturesAndMaterials";
 import QuizzesAndAssessments from "./pages/user/QuizzesAndAssessments";
+import QuizApp from "./pages/user/MakeQuizz";
 import Certifications from "./pages/user/Certifications";
 import DiscussionForum from "./pages/user/DiscussionForum";
 import LoginPage from "./pages/LoginPage";
@@ -108,6 +109,10 @@ const router = createBrowserRouter([
             {
                 path: "quizzes",
                 element: <QuizzesAndAssessments />,
+            },
+            {
+                path: "quiz/:courseId/:quizId/take",
+                element: <QuizApp />,
             },
             {
                 path: "certifications",
