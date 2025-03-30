@@ -16,15 +16,33 @@ const QuizzesAndAssessments = () => {
         const coursesResponse = await courseService.getCourseUserRegister();
         const courses = coursesResponse.data.course;
         
+        // Fetch quiz results for the current user
+        const quizResultResponse = await quizService.getQuizResulsByUserId();
+        const quizResults = quizResultResponse.data || [];
+        
+        // Create a map of completed quizzes with their scores
+        const completedQuizzesMap = {};
+        quizResults.forEach(result => {
+          completedQuizzesMap[result.quiz_id] = {
+            completed: true,
+            total_question: result.total_questions,
+            score: result.score || 0
+          };
+        });
+        
         const quizzesPromises = courses.map(async course => {
           const quizResponse = await quizService.getCourseQuizzes(course.id);
-          return (quizResponse.data || []).map(quiz => ({
-            ...quiz,
-            courseName: course.title || 'Chưa đặt tên khóa học',
-            courseId: course.id,
-            // Giả lập trạng thái hoàn thành ngẫu nhiên cho demo
-            completed: Math.random() > 0.7
-          }));
+          return (quizResponse.data || []).map(quiz => {
+            const quizResult = completedQuizzesMap[quiz.id];
+            return {
+              ...quiz,
+              courseName: course.title || 'Chưa đặt tên khóa học',
+              courseId: course.id,
+              completed: quizResult ? true : false,
+              total_question: quizResult ? quizResult.total_question : 0,
+              score: quizResult ? quizResult.score : 0
+            };
+          });
         });
         
         const quizzesResponses = await Promise.all(quizzesPromises);
@@ -182,7 +200,7 @@ const QuizzesAndAssessments = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredQuizzes.map(quiz => (
               <div key={quiz.id} className="group">
-                <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 relative">
                   {/* Course Name Banner */}
                   <div className="bg-gray-100 px-4 py-2 flex items-center">
                     <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -192,11 +210,11 @@ const QuizzesAndAssessments = () => {
                   </div>
                   
                   {/* Status Badge */}
-                  {/* {quiz.completed && (
-                    <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-2 py-1 m-2 rounded-lg">
-                      Hoàn thành
+                  {quiz.completed && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                      Đã hoàn thành
                     </div>
-                  )} */}
+                  )}
 
                   <div className="p-5">
                     <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors duration-200">
@@ -221,12 +239,27 @@ const QuizzesAndAssessments = () => {
                       </div>
                     </div>
                     
-                    <Link 
-                      to={`/user/quiz/${quiz.courseId}/${quiz.id}/take`}
-                      className="block w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-center font-medium rounded-lg transition-colors duration-200"
-                    >
-                      {quiz.completed ? 'Làm lại' : 'Bắt đầu làm bài'}
-                    </Link>
+                    {quiz.completed ? (
+                      <div className="mb-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium text-gray-700">Điểm đạt được:</span>
+                          <span className="text-sm font-bold text-indigo-600">{quiz.score}/{quiz.total_question} câu</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div 
+                            className="bg-indigo-600 h-2.5 rounded-full" 
+                            style={{ width: `${quiz.total_question ? (quiz.score / quiz.total_question) * 100 : 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link 
+                        to={`/user/quiz/${quiz.courseId}/${quiz.id}/take`}
+                        className="block w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-center font-medium rounded-lg transition-colors duration-200"
+                      >
+                        Bắt đầu làm bài
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
