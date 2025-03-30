@@ -9,18 +9,32 @@ import {
   ArrowLeftOnRectangleIcon,
   TagIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
 
 function AdminDashboard() {
   const [activePage, setActivePage] = useState('dashboard');
-
-  const sidebarItems = [
+  const { currentUser, logout } = useAuth();
+  
+  // Tạo danh sách mục sidebar ban đầu
+  const allSidebarItems = [
     { id: 'dashboard', name: 'Bảng Điều Khiển', icon: <Cog6ToothIcon className="w-6 h-6" />, path: '/admin' },
-    { id: 'users', name: 'Quản Lý Người Dùng', icon: <UsersIcon className="w-6 h-6" />, path: '/admin/users' },
+    { id: 'users', name: 'Quản Lý Người Dùng', icon: <UsersIcon className="w-6 h-6" />, path: '/admin/users', hideForRoles: ['teacher'] },
     { id: 'categories', name: 'Quản Lý Danh Mục', icon: <TagIcon className="w-6 h-6" />, path: '/admin/categories' },
     { id: 'courses', name: 'Quản Lý Khóa Học', icon: <BookOpenIcon className="w-6 h-6" />, path: '/admin/courses' },
-    { id: 'analytics', name: 'Báo Cáo & Phân Tích', icon: <ChartBarIcon className="w-6 h-6" />, path: '/admin/analytics' },
-    { id: 'notifications', name: 'Thông Báo', icon: <BellIcon className="w-6 h-6" />, path: '/admin/notifications' },
+    { id: 'analytics', name: 'Báo Cáo & Phân Tích', icon: <ChartBarIcon className="w-6 h-6" />, path: '/admin/analytics', hideForRoles: ['teacher'] },
+    { id: 'notifications', name: 'Thông Báo', icon: <BellIcon className="w-6 h-6" />, path: '/admin/notifications', hideForRoles: ['teacher'] },
   ];
+  
+  // Lọc các mục sidebar dựa trên role của người dùng
+  const sidebarItems = allSidebarItems.filter(item => {
+    if (!item.hideForRoles) return true;
+    return !item.hideForRoles.includes(currentUser?.role);
+  });
+
+  // Xử lý đăng xuất
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -50,6 +64,7 @@ function AdminDashboard() {
         <div className="absolute bottom-0 w-64 p-6">
           <button 
             className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100"
+            onClick={handleLogout}
           >
             <ArrowLeftOnRectangleIcon className="w-6 h-6 mr-3" />
             <span>Đăng Xuất</span>
@@ -70,9 +85,9 @@ function AdminDashboard() {
               </button>
               <div className="ml-4 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                  Q
+                  {currentUser?.name?.charAt(0) || 'U'}
                 </div>
-                <span className="ml-2 text-gray-700">Quản Trị</span>
+                <span className="ml-2 text-gray-700">{currentUser?.name || 'Người dùng'}</span>
               </div>
             </div>
           </div>

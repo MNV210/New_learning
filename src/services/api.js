@@ -10,6 +10,22 @@ const apiClient = axios.create({
   },
 });
 
+// Storage để tránh lặp lại các yêu cầu xác thực 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 // Interceptor để xử lý việc thêm token xác thực vào header
 apiClient.interceptors.request.use(
   (config) => {
@@ -25,21 +41,36 @@ apiClient.interceptors.request.use(
 // Interceptor để xử lý phản hồi và lỗi
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Xử lý các lỗi chung như lỗi xác thực 401, lỗi máy chủ 500, v.v.
-    if (error.response) {
-      const { status } = error.response;
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Kiểm tra lỗi 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      console.error('Authentication error:', error.response);
       
-      if (status === 401) {
-        // Xử lý lỗi xác thực - có thể đăng xuất người dùng
-        localStorage.removeItem('token');
-        // Chuyển hướng đến trang đăng nhập
-        window.location.href = '/login';
+      // Xử lý lỗi xác thực - đăng xuất người dùng
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      
+      // Nếu không phải request login, chuyển hướng đến trang đăng nhập
+      if (!originalRequest.url.includes('/auth/login')) {
+        // Tránh vòng lặp chuyển hướng
+        if (!originalRequest._retry) {
+          originalRequest._retry = true;
+          
+          // Chuyển hướng đến trang đăng nhập
+          window.location.href = '/login';
+        }
       }
-      
-      // Các xử lý lỗi khác
     }
     
+    // Xử lý lỗi mạng
+    if (!error.response) {
+      console.error('Network error:', error);
+    }
+    
+    // Các lỗi khác
     return Promise.reject(error);
   }
 );
