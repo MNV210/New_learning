@@ -11,7 +11,6 @@ import {
 } from '@ant-design/icons';
 
 import { courseService } from '../../services';
-import '../../assets/LessonManagement.css'
 import lessonService from '../../services/lessonService';
 import uploadToS3 from '../../services/uploadToS3';
 
