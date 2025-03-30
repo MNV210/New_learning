@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import quizService from '../../services/quizService';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
+import quizResultService from '../../services/quizResultService';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
@@ -221,13 +222,14 @@ const QuizApp = () => {
           is_correct: answer.value === (quizData.find(q => q.id === parseInt(questionId))?.correctAnswer || '')
         }))
       };
+      console.log(submissionData)
       
       // Gửi kết quả đến API
-      await quizService.submitQuizResult(submissionData);
+      await quizResultService.submitQuiz(submissionData).then(()=>{
+        message.success('Bạn đã hoàn thành bài kiểm tra!');
+        navigate('/user/quizzes');
+      });
       
-      // Thông báo thành công và chuyển hướng
-      message.success('Bạn đã hoàn thành bài kiểm tra!');
-      navigate('/user/quizzes');
     } catch (error) {
       console.error('Lỗi khi nộp bài:', error);
       message.error('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại!');
